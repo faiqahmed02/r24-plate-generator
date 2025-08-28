@@ -11,6 +11,7 @@ type Props = {
   onChangeDraft: (id: string, field: "w" | "h", raw: string) => void;
   commit: (id: string, field: "w" | "h") => void;
   removePlate: (id: string) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   dragProps: any;
 };
 
