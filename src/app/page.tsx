@@ -15,7 +15,7 @@ export default function Page() {
   const [unit, setUnit] = useState<Unit>("cm");
   const [plates, setPlates] = useState<Plate[]>([
     {id: uid(), widthCm: 250, heightCm: 30},
-    {id: uid(), widthCm: 30, heightCm: 30},
+    {id: uid(), widthCm: 20, heightCm: 30},
   ]);
   const [drafts, setDrafts] = useState<Record<string, {w: Draft; h: Draft}>>(
     {}

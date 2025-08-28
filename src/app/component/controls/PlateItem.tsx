@@ -41,7 +41,7 @@ export default function PlateItem({
   // ----- VALIDATION RANGES -----
   const ranges =
     unit === "cm"
-      ? { w: { min: 20, max: 300 }, h: { min: 20, max: 128 } }
+      ? { w: { min: 20, max: 300 }, h: { min: 30, max: 128 } }
       : { w: { min: 7.87, max: 118.11 }, h: { min: 7.87, max: 50.39 } };
 
   const widthValue =
