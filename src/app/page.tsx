@@ -1,103 +1,204 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import {useEffect, useMemo, useState} from "react";
+import {Draft, Locale, Plate, Unit} from "./component/shared/PlateTypes";
+import {uid, parseLocaleNumber, inToCm} from "./component/shared/NumberUtils";
+import CanvasPreview from "./component/canvas/CanvasPreview";
+import ControlsPanel from "./component/controls/ControlsPanel";
+
+const STORAGE_KEY = "r24:plate-generator:v1";
+const DEFAULT_IMAGE =
+  "https://images.unsplash.com/photo-1501004318641-b39e6451bec6?q=80&w=1600&auto=format&fit=crop";
+
+export default function Page() {
+  const [locale, setLocale] = useState<Locale>("en");
+  const [unit, setUnit] = useState<Unit>("cm");
+  const [plates, setPlates] = useState<Plate[]>([
+    {id: uid(), widthCm: 250, heightCm: 30},
+    {id: uid(), widthCm: 30, heightCm: 30},
+  ]);
+  const [drafts, setDrafts] = useState<Record<string, {w: Draft; h: Draft}>>(
+    {}
+  );
+  const [imgUrl, setImgUrl] = useState<string>(DEFAULT_IMAGE);
+  const [image, setImage] = useState<HTMLImageElement | null>(null);
+
+  // Load from localStorage
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed?.plates?.length) setPlates(parsed.plates);
+        if (parsed?.unit) setUnit(parsed.unit);
+        if (parsed?.locale) setLocale(parsed.locale);
+        if (parsed?.imgUrl) setImgUrl(parsed.imgUrl);
+      }
+    } catch {}
+  }, []);
+
+  // Persist
+  useEffect(() => {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({plates, unit, locale, imgUrl})
+    );
+  }, [plates, unit, locale, imgUrl]);
+
+  // Derived totals
+  const totalWidthCm = useMemo(
+    () => plates.reduce((acc, p) => acc + p.widthCm, 0),
+    [plates]
+  );
+  const maxHeightCm = useMemo(
+    () => plates.reduce((m, p) => Math.max(m, p.heightCm), 0),
+    [plates]
+  );
+
+  // Load image
+  useEffect(() => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => setImage(img);
+    img.src = imgUrl || DEFAULT_IMAGE;
+  }, [imgUrl]);
+
+  const beginEdit = (id: string, field: "w" | "h", currentCm: number) => {
+    setDrafts((d) => ({
+      ...d,
+      [id]: {
+        ...(d[id] || {w: {value: ""}, h: {value: ""}}),
+        [field]: {
+          value: unit === "cm" ? String(currentCm) : String(currentCm / 2.54),
+        },
+      },
+    }));
+  };
+
+  const onChangeDraft = (id: string, field: "w" | "h", raw: string) => {
+    setDrafts((d) => ({
+      ...d,
+      [id]: {
+        ...(d[id] || {w: {value: ""}, h: {value: ""}}),
+        [field]: {value: raw},
+      },
+    }));
+  };
+
+  const commit = (id: string, field: "w" | "h") => {
+    const plate = plates.find((p) => p.id === id);
+    if (!plate) return;
+
+    const draft = drafts[id]?.[field]?.value ?? "";
+    let parsed = parseLocaleNumber(draft, locale);
+    if (parsed == null) {
+      setDrafts((d) => ({
+        ...d,
+        [id]: {
+          ...(d[id] || {w: {value: ""}, h: {value: ""}}),
+          [field]: {value: draft, invalid: true},
+        },
+      }));
+      return;
+    }
+
+    // Convert to cm if in inches
+    const parsedCm = unit === "in" ? inToCm(parsed) : parsed;
+
+    // Validation
+    const [minW, maxW] = [20, 300];
+    const [minH, maxH] = [30, 120];
+    const isValid =
+      (field === "w" && parsedCm >= minW && parsedCm <= maxW) ||
+      (field === "h" && parsedCm >= minH && parsedCm <= maxH);
+
+    if (!isValid) {
+      setDrafts((d) => ({
+        ...d,
+        [id]: {
+          ...(d[id] || {w: {value: ""}, h: {value: ""}}),
+          [field]: {value: draft, invalid: true},
+        },
+      }));
+      return;
+    }
+
+    // Update plate in cm
+    setPlates((arr) =>
+      arr.map((p) =>
+        p.id === id
+          ? {...p, [field === "w" ? "widthCm" : "heightCm"]: parsedCm}
+          : p
+      )
+    );
+
+    // Keep draft in user's unit
+    setDrafts((d) => ({
+      ...d,
+      [id]: {
+        ...(d[id] || {w: {value: ""}, h: {value: ""}}),
+        [field]: {value: draft, invalid: false},
+      },
+    }));
+  };
+
+  const addPlate = () => {
+    if (plates.length >= 10) return;
+    setPlates((p) => [
+      ...p,
+      {
+        id: uid(),
+        widthCm: 30,
+        heightCm: Math.max(30, p[p.length - 1].heightCm),
+      },
+    ]);
+  };
+
+  const removePlate = (id: string) => {
+    if (plates.length <= 1) return;
+    setPlates((arr) => arr.filter((p) => p.id !== id));
+  };
+
+  const onUpload = (file: File) => {
+    const url = URL.createObjectURL(file);
+    setImgUrl(url);
+  };
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <main
+      className="grid"
+      style={{
+        gridTemplateColumns: "minmax(340px, 1fr) 450px",
+        gap: "1.25rem",
+        padding: "1.25rem",
+      }}
+    >
+      <CanvasPreview
+        plates={plates}
+        locale={locale}
+        unit={unit}
+        image={image}
+        totalWidthCm={totalWidthCm}
+        maxHeightCm={maxHeightCm}
+        imgUrl={imgUrl}
+      />
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+      <ControlsPanel
+        plates={plates}
+        drafts={drafts}
+        unit={unit}
+        locale={locale}
+        setUnit={setUnit}
+        setLocale={setLocale}
+        addPlate={addPlate}
+        removePlate={removePlate}
+        beginEdit={beginEdit}
+        onChangeDraft={onChangeDraft}
+        commit={commit}
+        imgUrl={imgUrl}
+        onUpload={onUpload}
+        setPlates={setPlates}
+      />
+    </main>
   );
 }
