@@ -171,6 +171,7 @@ export default function Page() {
         gridTemplateColumns: "minmax(340px, 1fr) 450px",
         gap: "1.25rem",
         padding: "1.25rem",
+        alignItems: "start",
       }}
     >
       <CanvasPreview

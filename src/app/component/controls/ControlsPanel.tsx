@@ -64,7 +64,7 @@ export default function ControlsPanel({
   };
 
   return (
-    <aside className="aside" style={{ padding: "1rem", marginTop: "99px" }}>
+    <aside className="aside" style={{ padding: "1rem", }}>
       <div>
         <h2>
           Masse. <span style={{ color: "#1ec466", fontWeight: "300" }}>Eingeben</span>
