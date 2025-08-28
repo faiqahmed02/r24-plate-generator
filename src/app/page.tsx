@@ -90,6 +90,7 @@ export default function Page() {
     if (!plate) return;
 
     const draft = drafts[id]?.[field]?.value ?? "";
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let parsed = parseLocaleNumber(draft, locale);
     if (parsed == null) {
       setDrafts((d) => ({
