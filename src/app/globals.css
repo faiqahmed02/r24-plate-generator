@@ -42,7 +42,7 @@ select {
 }
 
 
-/* ---------------- Buttons ---------------- */
+/*  Buttons  */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -76,13 +76,13 @@ select {
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 32px;
-  height: 32px;
+  width: 25px;
+  height: 25px;
   font-size: 1.5rem;
   line-height: 1;
   color: #fe6057;
   background: #ffcecd;
-  border-radius: 10px;
+  border-radius: 50%;
   cursor: pointer;
   transition: background 0.2s ease, transform 0.1s ease;
 }
@@ -91,7 +91,7 @@ select {
   transform: scale(1.05);
 }
 
-/* ---------------- Layout ---------------- */
+/*  Layout  */
 .grid {
   display: grid;
   gap: 1rem;
@@ -108,7 +108,7 @@ select {
   gap: 8px;
 }
 
-/* ---------------- Cards ---------------- */
+/*  Cards  */
 .card {
   background: var(--card);
   border: 1px solid var(--border);
@@ -116,13 +116,12 @@ select {
   box-shadow: 0 2px 20px #0001;
 }
 
-/* ---------------- Inputs ---------------- */
+/*  Inputs  */
 .input {
   display: flex;
   align-items: center;
   gap: 0.4rem;
   background: #fff;
-  border: 1px solid var(--border);
   border-radius: 0.75rem;
   padding: 0.45rem 0.6rem;
   position: relative;
@@ -163,7 +162,7 @@ select {
   }
 }
 
-/* ---------------- Drag + Sort ---------------- */
+/*  Drag + Sort  */
 .sortable {
   display: flex;
   flex-direction: column;
@@ -197,7 +196,7 @@ select {
   background: #f8fafc;
 }
 
-/* ---------------- Badges ---------------- */
+/*  Badges  */
 .badge {
   background: var(--dark);
   color: #fff;
@@ -223,7 +222,7 @@ select {
   border: 1px solid #000;
 }
 
-/* ---------------- Utilities ---------------- */
+/*  Utilities  */
 .small {
   font-size: 0.85rem;
   color: var(--muted);
