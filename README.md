@@ -1,36 +1,97 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# R24 Plate Generator System
 
-## Getting Started
+## Overview
 
-First, run the development server:
+The **R24 Plate Generator System** is a responsive web app for configuring
+and visualizing custom wall plates.\
+Each plate displays a portion of a shared motif image, updating in real
+time when dimensions or layout change.\
+Optimized for both desktop and mobile devices.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+------------------------------------------------------------------------
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Features
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+-   Default plate generated on first load (state persisted in
+    **localStorage**).
+-   Add/remove up to **10 plates** (cannot go below 1).
+-   Input custom dimensions (**20--300 cm width**, **30--128 cm
+    height**).
+-   Locale support for English and German (`.` and `,` decimal
+    separators).
+-   Real-time canvas preview (scales **1 cm = 1 px**).
+-   Plates displayed **side by side**, no stretching.
+-   Shared motif split across plates.
+-   **Cropping from center outward** for aspect ratio mismatch.
+-   **Horizontal mirroring** if layout width exceeds **300 cm**.
+-   Touch and mobile friendly.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+------------------------------------------------------------------------
 
-## Learn More
+## Setup Instructions
 
-To learn more about Next.js, take a look at the following resources:
+1.  **Clone repository**
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+    ``` bash
+    git clone https://github.com/faiqahmed02/r24-plate-generator
+    cd r24-plate-generator
+    ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+2.  **Install dependencies**
 
-## Deploy on Vercel
+    ``` bash
+    npm install
+    ```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+3.  **Run development server**
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+    ``` bash
+    npm run dev
+    ```
+
+4.  **Build for production**
+
+    ``` bash
+    npm run build
+    npm run preview
+    ```
+
+------------------------------------------------------------------------
+
+## Known Limitations / Assumptions
+
+-   Default motif image is embedded; custom uploads optional.
+-   Image extension is handled by **mirroring** beyond 300 cm, not
+    tiling.
+-   Performance optimized for canvas-based preview; large images may
+    cause slowdown on very low-end devices.
+-   Export currently only supports **PNG snapshots** (if implemented).
+
+------------------------------------------------------------------------
+
+## Screenshots & Demo Video
+
+*(Replace with actual media)*
+
+-   **Screenshot 1:** Initial view with single plate\
+-   **Screenshot 2:** Multiple plates with motif applied\
+-   **Demo Video:** [Link to demo](https://www.dropbox.com/scl/fi/316vazirf1fkrig2ia76l/Screen-Recording-2025-09-02-at-3.14.12-PM.mov?rlkey=ge446iv60pvd1yvvw69n2g6tb&st=jg9tuls4&dl=0)
+
+------------------------------------------------------------------------
+
+## Tech Stack
+
+-   React + Vite
+-   TypeScript
+-   Canvas 2D API
+-   LocalStorage persistence
+
+------------------------------------------------------------------------
+
+## Evaluation Notes
+
+This implementation prioritizes: - **Accurate scaling** (1 cm = 1 px) -
+**Real-time updates** - **Error handling with styled messages** -
+**Responsive, mobile-friendly design**
+
+------------------------------------------------------------------------
