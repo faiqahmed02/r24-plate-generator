@@ -370,7 +370,7 @@ select {
 }
 
 .label {
-  flex: 0 0 59px; /* fixed label width */
+  flex: 0 0 59px;
   font-size: 0.9rem;
   font-weight: 500;
   color: #55565a;
