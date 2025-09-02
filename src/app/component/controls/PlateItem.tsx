@@ -75,7 +75,7 @@ export default function PlateItem({
             inputMode="decimal"
             value={
               draft[field].value === undefined || draft[field].value === ""
-                ? formatLocaleNumber(value, locale) // ✅ show plate’s initial value
+                ? formatLocaleNumber(value, locale)
                 : draft[field].value
             }
             onFocus={() => beginEdit(plate.id, field, cm)}
@@ -103,7 +103,9 @@ export default function PlateItem({
           )}
         </label>
         {idx !== 0 && (
+          <div style={{textAlign: "center"}}>
           <span className="mm-text">{`${toMm(cm)} mm`}</span>
+          </div>
         )}
       </div>
     );
