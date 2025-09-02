@@ -1,9 +1,9 @@
 "use client";
 
-import {useEffect} from "react";
-import {Plate, Locale, Unit} from "../shared/PlateTypes";
-import {formatLocaleNumber, cmToIn} from "../shared/NumberUtils";
-import {useCanvasDraw} from "./useCanvasDraw";
+import { useEffect } from "react";
+import { Plate, Locale, Unit } from "../shared/PlateTypes";
+import { cmToIn, formatLocaleNumber } from "../shared/NumberUtils";
+import { useCanvasDraw } from "./useCanvasDraw";
 
 type Props = {
   plates: Plate[];
@@ -13,6 +13,7 @@ type Props = {
   totalWidthCm: number;
   maxHeightCm: number;
   imgUrl: string;
+  baseImageWidthCm?: number; // optional: how wide the source image is (in cm)
 };
 
 export default function CanvasPreview({
@@ -23,15 +24,14 @@ export default function CanvasPreview({
   totalWidthCm,
   maxHeightCm,
   imgUrl,
+  baseImageWidthCm = 300, // default: 300 cm
 }: Props) {
-  const {canvasRef, draw} = useCanvasDraw(
+  const { canvasRef, draw } = useCanvasDraw(
     plates,
-    locale,
-    unit,
     image,
     totalWidthCm,
-    maxHeightCm,
-    imgUrl
+    maxHeightCm, // Pass maxHeightCm as the 6th argument
+    baseImageWidthCm, // Pass baseImageWidthCm as the 8th argument
   );
 
   useEffect(() => {
@@ -51,8 +51,8 @@ export default function CanvasPreview({
 
   return (
     <section>
-      <div className="card" style={{padding: "1rem"}}>
-        <div className="row" style={{justifyContent: "space-between"}}>
+      <div className="card" style={{ padding: "1rem" }}>
+        <div className="row" style={{ justifyContent: "space-between" }}>
           <div className="row">
             <span className="small">
               {plates.length} plate{plates.length > 1 ? "s" : ""}
@@ -65,7 +65,7 @@ export default function CanvasPreview({
           </div>
         </div>
       </div>
-      <div className="canvasWrap" style={{marginTop: ".75rem", minHeight: 420}}>
+      <div className="canvasWrap" style={{ marginTop: ".75rem", minHeight: 420 }}>
         <canvas ref={canvasRef} />
         <div className="handle" />
       </div>

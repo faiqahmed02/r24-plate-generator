@@ -67,7 +67,7 @@ export default function Page() {
   );
   const [imgUrl, setImgUrl] = usePersistentState<string>(
     `${STORAGE_KEY}:img`,
-    DEFAULT_IMAGE
+    DEFAULT_IMAGE 
   );
   const [drafts, setDrafts] = useState<
     Record<string, { w: Draft; h: Draft }>
@@ -188,9 +188,14 @@ export default function Page() {
 
   // Image upload handler
   const onUpload = useCallback((file: File) => {
-    const url = URL.createObjectURL(file);
-    setImgUrl(url);
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result as string;
+      setImgUrl(dataUrl); // store base64 string
+    };
+    reader.readAsDataURL(file);
   }, [setImgUrl]);
+  
 
 // Sync drafts when unit, locale or plates change
 useEffect(() => {

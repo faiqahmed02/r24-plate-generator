@@ -1,4 +1,4 @@
-import { Plate, Draft, Locale, Unit } from "../shared/PlateTypes";
+import {Plate, Draft, Locale, Unit} from "../shared/PlateTypes";
 import {
   formatLocaleNumber,
   cmToIn,
@@ -9,7 +9,7 @@ import {
 type Props = {
   plate: Plate;
   idx: number;
-  drafts: Record<string, { w: Draft; h: Draft }>;
+  drafts: Record<string, {w: Draft; h: Draft}>;
   unit: Unit;
   locale: Locale;
   beginEdit: (id: string, field: "w" | "h", currentCm: number) => void;
@@ -32,32 +32,38 @@ export default function PlateItem({
   removePlate,
   dragProps,
 }: Props) {
-  const draft = drafts[plate.id] || { w: { value: undefined }, h: { value: undefined } };
+  const draft = drafts[plate.id] || {w: {value: ""}, h: {value: ""}};
 
   const ranges =
     unit === "cm"
-      ? { w: { min: 20, max: 300 }, h: { min: 30, max: 128 } }
-      : { w: { min: 7.87, max: 118.11 }, h: { min: 7.87, max: 50.39 } };
+      ? {w: {min: 20, max: 300}, h: {min: 30, max: 128}}
+      : {w: {min: 7.87, max: 118.11}, h: {min: 7.87, max: 50.39}};
 
   const toUnit = (cm: number) => (unit === "cm" ? cm : cmToIn(cm));
   const toMm = (cm: number) =>
     unit === "cm" ? round2(cm * 10) : round2(cm * 25.4);
 
-  // Correct fallback for initial values
-  const parseValue = (field: "w" | "h") => {
-    const cm = field === "w" ? plate.widthCm : plate.heightCm;
-    if (draft[field].value === undefined || draft[field].value === "") {
-      return toUnit(cm);
-    }
-    return parseLocaleNumber(draft[field].value, locale) ?? toUnit(cm);
+  // ✅ Just return the current draft value (can be empty string)
+  const getDraftValue = (field: "w" | "h") => {
+    return draft[field]?.value ?? "";
   };
 
-  const getInvalid = (field: "w" | "h", value: number) =>
-    !isNaN(value) && (value < ranges[field].min || value > ranges[field].max);
+  const getInvalid = (field: "w" | "h", value: number | null) =>
+    value !== null &&
+    !isNaN(value) &&
+    (value < ranges[field].min || value > ranges[field].max);
 
-  const renderField = (field: "w" | "h", label: string, placeholder: string) => {
-    const value = parseValue(field);
-    const invalid = getInvalid(field, value);
+  const renderField = (
+    field: "w" | "h",
+    label: string,
+    placeholder: string
+  ) => {
+    const rawValue = getDraftValue(field);
+
+    // Try parsing the draft
+    const parsed = parseLocaleNumber(rawValue, locale);
+    const invalid = getInvalid(field, parsed);
+
     const cm = field === "w" ? plate.widthCm : plate.heightCm;
 
     return (
@@ -73,16 +79,14 @@ export default function PlateItem({
         <label className={`input ${invalid ? "invalid" : ""}`} title={label}>
           <input
             inputMode="decimal"
-            value={
-              draft[field].value === undefined || draft[field].value === ""
-                ? formatLocaleNumber(value, locale)
-                : draft[field].value
-            }
+            value={rawValue} // ✅ stays what user typed (can be empty)
             onFocus={() => beginEdit(plate.id, field, cm)}
             onChange={(e) => onChangeDraft(plate.id, field, e.target.value)}
             onBlur={() => {
               commit(plate.id, field);
-              const parsed = parseLocaleNumber(draft[field].value, locale);
+
+              // reformat only if valid number
+              const parsed = parseLocaleNumber(rawValue, locale);
               if (parsed !== null) {
                 onChangeDraft(
                   plate.id,
@@ -104,7 +108,7 @@ export default function PlateItem({
         </label>
         {idx !== 0 && (
           <div style={{textAlign: "center"}}>
-          <span className="mm-text">{`${toMm(cm)} mm`}</span>
+            <span className="mm-text">{`${toMm(cm)} mm`}</span>
           </div>
         )}
       </div>
@@ -112,11 +116,20 @@ export default function PlateItem({
   };
 
   return (
-    <div key={plate.id} data-id={plate.id} className="sortableItem" {...dragProps}>
+    <div
+      key={plate.id}
+      data-id={plate.id}
+      className="sortableItem"
+      {...dragProps}
+    >
       <div className="kbd" title="Drag to reorder">
         <span>⋮⋮</span>
       </div>
-      <div className={`badge-circle ${(idx + 1) % 2 !== 0 ? "badge-circle-1" : ""}`}>
+      <div
+        className={`badge-circle ${
+          (idx + 1) % 2 !== 0 ? "badge-circle-1" : ""
+        }`}
+      >
         {idx + 1}
       </div>
 

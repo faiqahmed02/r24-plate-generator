@@ -74,11 +74,12 @@ export default function ControlsPanel({
       <div className="row" style={{justifyContent: "space-between"}}>
         <div className="row">
           <label className="input" title="Locale">
-            <span>Locale</span>
+            <span>Locale:</span>
             <select
               value={locale}
               onChange={(e) => setLocale(e.target.value as Locale)}
               style={{border: "none"}}
+              className="gray-dropdown"
             >
               <option value="en">English</option>
               <option value="de">Deutsch</option>
@@ -86,11 +87,12 @@ export default function ControlsPanel({
           </label>
 
           <label className="input" title="Units">
-            <span>Units</span>
+            <span>Units:</span>
             <select
               value={unit}
               onChange={(e) => setUnit(e.target.value as Unit)}
               style={{border: "none"}}
+              className="gray-dropdown"
             >
               <option value="cm">cm</option>
               <option value="in">in</option>

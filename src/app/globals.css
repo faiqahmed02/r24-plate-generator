@@ -135,6 +135,22 @@ select {
   box-shadow: 0 0 0 6px rgba(239, 68, 68, 0.05);
 }
 
+.gray-dropdown {
+  border: none;
+  background-color: #e0e0e0; /* grayish background */
+  padding: 6px 10px;
+  border-radius: 5px;
+  font-size: 14px;
+  appearance: none; /* removes default OS arrow */
+  cursor: pointer;
+}
+
+.gray-dropdown:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px #c0c0c0; /* subtle focus effect */
+}
+
+
 /* Floating error badge */
 .error-badge {
   position: absolute;
@@ -328,7 +344,7 @@ select {
   }
 
   .canvasWrap {
-    min-height: 250px;
+    min-height: 300px !important;
     border-radius: 0.75rem;
   }
 
