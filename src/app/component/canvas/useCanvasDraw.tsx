@@ -1,5 +1,5 @@
-import { useCallback, useRef } from "react";
-import { Plate } from "../shared/PlateTypes";
+import {useCallback, useRef} from "react";
+import {Plate} from "../shared/PlateTypes";
 
 export function useCanvasDraw(
   plates: Plate[],
@@ -59,11 +59,16 @@ export function useCanvasDraw(
       let segmentStartX = xCursorCm;
 
       while (remainingWidthCm > 0) {
-        const segmentIndexX = Math.floor((segmentStartX - xCursorCm) / baseImageWidthCm);
+        const segmentIndexX = Math.floor(
+          (segmentStartX - xCursorCm) / baseImageWidthCm
+        );
         const isMirrorX = segmentIndexX % 2 === 1;
 
         const offsetXcm = segmentStartX % baseImageWidthCm;
-        const segmentWidthCm = Math.min(baseImageWidthCm - offsetXcm, remainingWidthCm);
+        const segmentWidthCm = Math.min(
+          baseImageWidthCm - offsetXcm,
+          remainingWidthCm
+        );
 
         // Vertical tiling
         let remainingHeightCm = plate.heightCm;
@@ -74,18 +79,34 @@ export function useCanvasDraw(
           const isMirrorY = segmentIndexY % 2 === 1;
 
           const offsetYcm = segmentStartY % baseImageHeightCm;
-          const segmentHeightCm = Math.min(baseImageHeightCm - offsetYcm, remainingHeightCm);
+          const segmentHeightCm = Math.min(
+            baseImageHeightCm - offsetYcm,
+            remainingHeightCm
+          );
 
           const sx = Math.floor((offsetXcm / baseImageWidthCm) * image.width);
-          const sw = Math.floor((segmentWidthCm / baseImageWidthCm) * image.width);
+          const sw = Math.floor(
+            (segmentWidthCm / baseImageWidthCm) * image.width
+          );
 
-          const sh = Math.floor((segmentHeightCm / baseImageHeightCm) * image.height);
+          const sh = Math.floor(
+            (segmentHeightCm / baseImageHeightCm) * image.height
+          );
 
           // Bottom-aligned: crop from top if image taller than plate
-          const sy = Math.max(0, image.height - sh - Math.floor((offsetYcm / baseImageHeightCm) * image.height));
+          const sy = Math.max(
+            0,
+            image.height -
+              sh -
+              Math.floor((offsetYcm / baseImageHeightCm) * image.height)
+          );
 
-          const dxSeg = Math.floor(((segmentStartX - xCursorCm) / plate.widthCm) * plateW + dx);
-          const dySeg = Math.floor((segmentStartY / plate.heightCm) * plateH + dy);
+          const dxSeg = Math.floor(
+            ((segmentStartX - xCursorCm) / plate.widthCm) * plateW + dx
+          );
+          const dySeg = Math.floor(
+            (segmentStartY / plate.heightCm) * plateH + dy
+          );
           const dwSeg = Math.floor((segmentWidthCm / plate.widthCm) * plateW);
           const dhSeg = Math.floor((segmentHeightCm / plate.heightCm) * plateH);
 
@@ -96,7 +117,17 @@ export function useCanvasDraw(
           const cy = dySeg + dhSeg / 2;
           ctx.translate(cx, cy);
           ctx.scale(isMirrorX ? -1 : 1, isMirrorY ? -1 : 1);
-          ctx.drawImage(image, sx, sy, sw, sh, -dwSeg / 2, -dhSeg / 2, dwSeg, dhSeg);
+          ctx.drawImage(
+            image,
+            sx,
+            sy,
+            sw,
+            sh,
+            -dwSeg / 2,
+            -dhSeg / 2,
+            dwSeg,
+            dhSeg
+          );
 
           ctx.restore();
 
@@ -120,5 +151,5 @@ export function useCanvasDraw(
     baseImageHeightCm,
   ]);
 
-  return { canvasRef, draw };
+  return {canvasRef, draw};
 }

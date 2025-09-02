@@ -43,9 +43,9 @@ export default function PlateItem({
   const toMm = (cm: number) =>
     unit === "cm" ? round2(cm * 10) : round2(cm * 25.4);
 
-  // ✅ Just return the current draft value (can be empty string)
+  // Just return the current draft value (can be empty string)
   const getDraftValue = (field: "w" | "h") => {
-    return draft[field]?.value ?? "";
+    return draft[field]?.value ? draft[field].value : "";
   };
 
   const getInvalid = (field: "w" | "h", value: number | null) =>

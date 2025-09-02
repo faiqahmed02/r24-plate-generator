@@ -6,7 +6,7 @@ import { uid, parseLocaleNumber, inToCm, formatLocaleNumber } from "./component/
 import CanvasPreview from "./component/canvas/CanvasPreview";
 import ControlsPanel from "./component/controls/ControlsPanel";
 
-// ✅ constants outside component (no re-creation)
+// constants outside component (no re-creation)
 const STORAGE_KEY = "r24:plate-generator:v1";
 const DEFAULT_IMAGE =
   "https://rueckwand24.com/cdn/shop/files/Kuechenrueckwand-Kuechenrueckwand-Gruene-frische-Kraeuter-KR-000018-HB.jpg?v=1695288356&width=1200";

@@ -62,7 +62,6 @@ export default function ControlsPanel({
   const handleDragEnd = () => {
     setDraggingId(null);
   };
-  console.log(plates.length, "plates in controls");
 
   return (
     <aside className="aside" style={{padding: "1rem"}}>
