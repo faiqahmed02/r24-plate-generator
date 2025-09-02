@@ -59,7 +59,7 @@ export function useCanvasDraw(
       let segmentStartX = xCursorCm;
 
       while (remainingWidthCm > 0) {
-        const segmentIndexX = Math.floor(segmentStartX / baseImageWidthCm);
+        const segmentIndexX = Math.floor((segmentStartX - xCursorCm) / baseImageWidthCm);
         const isMirrorX = segmentIndexX % 2 === 1;
 
         const offsetXcm = segmentStartX % baseImageWidthCm;
