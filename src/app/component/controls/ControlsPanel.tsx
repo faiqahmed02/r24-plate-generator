@@ -1,12 +1,12 @@
 "use client";
 
-import { Plate, Draft, Unit, Locale } from "../shared/PlateTypes";
+import {Plate, Draft, Unit, Locale} from "../shared/PlateTypes";
 import PlateItem from "./PlateItem";
-import { useState } from "react";
+import {useState} from "react";
 
 type Props = {
   plates: Plate[];
-  drafts: Record<string, { w: Draft; h: Draft }>;
+  drafts: Record<string, {w: Draft; h: Draft}>;
   unit: Unit;
   locale: Locale;
   setUnit: (u: Unit) => void;
@@ -62,22 +62,24 @@ export default function ControlsPanel({
   const handleDragEnd = () => {
     setDraggingId(null);
   };
+  console.log(plates.length, "plates in controls");
 
   return (
-    <aside className="aside" style={{ padding: "1rem", }}>
+    <aside className="aside" style={{padding: "1rem"}}>
       <div>
         <h2>
-          Masse. <span style={{ color: "#1ec466", fontWeight: "300" }}>Eingeben</span>
+          Masse.{" "}
+          <span style={{color: "#1ec466", fontWeight: "300"}}>Eingeben</span>
         </h2>
       </div>
-      <div className="row" style={{ justifyContent: "space-between" }}>
+      <div className="row" style={{justifyContent: "space-between"}}>
         <div className="row">
           <label className="input" title="Locale">
             <span>Locale</span>
             <select
               value={locale}
               onChange={(e) => setLocale(e.target.value as Locale)}
-              style={{ border: "none" }}
+              style={{border: "none"}}
             >
               <option value="en">English</option>
               <option value="de">Deutsch</option>
@@ -89,7 +91,7 @@ export default function ControlsPanel({
             <select
               value={unit}
               onChange={(e) => setUnit(e.target.value as Unit)}
-              style={{ border: "none" }}
+              style={{border: "none"}}
             >
               <option value="cm">cm</option>
               <option value="in">in</option>
@@ -98,11 +100,11 @@ export default function ControlsPanel({
         </div>
       </div>
 
-      <div className="grid" style={{ marginTop: "1rem" }}>
-        <div className="row" style={{ justifyContent: "space-between" }}>
+      <div className="grid" style={{marginTop: "1rem"}}>
+        <div className="row" style={{justifyContent: "space-between"}}>
           <span className="small">1–10 plates</span>
 
-          <label className="btn ghost" style={{ cursor: "pointer" }}>
+          <label className="btn ghost" style={{cursor: "pointer"}}>
             <input
               type="file"
               accept="image/*"
@@ -137,7 +139,7 @@ export default function ControlsPanel({
           ))}
         </div>
 
-        <div className="row" style={{ justifyContent: "space-between" }}>
+        <div className="row" style={{justifyContent: "space-between"}}>
           <div
             className="align-right"
             style={{
@@ -147,14 +149,16 @@ export default function ControlsPanel({
               width: "100%",
             }}
           >
-            <a
-              className="btn color-[#1ec466]"
-              onClick={addPlate}
-              target="_blank"
-              rel="noreferrer"
-            >
-              Ruckwand hinzuufügen +
-            </a>
+            {plates.length !== 10 && (
+              <a
+                className="btn color-[#1ec466]"
+                onClick={addPlate}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Ruckwand hinzuufügen +
+              </a>
+            )}
           </div>
         </div>
       </div>

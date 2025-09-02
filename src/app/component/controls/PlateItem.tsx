@@ -1,5 +1,10 @@
 import { Plate, Draft, Locale, Unit } from "../shared/PlateTypes";
-import { formatLocaleNumber, cmToIn } from "../shared/NumberUtils";
+import {
+  formatLocaleNumber,
+  cmToIn,
+  parseLocaleNumber,
+  round2,
+} from "../shared/NumberUtils";
 
 type Props = {
   plate: Plate;
@@ -27,58 +32,82 @@ export default function PlateItem({
   removePlate,
   dragProps,
 }: Props) {
-  const d = drafts[plate.id] || { w: { value: "" }, h: { value: "" } };
+  const draft = drafts[plate.id] || { w: { value: undefined }, h: { value: undefined } };
 
-  const handleKeyDown = (
-    e: React.KeyboardEvent<HTMLInputElement>,
-    field: "w" | "h"
-  ) => {
-    if (e.key === "Enter") {
-      commit(plate.id, field);
-    }
-  };
-
-  // ----- VALIDATION RANGES -----
   const ranges =
     unit === "cm"
       ? { w: { min: 20, max: 300 }, h: { min: 30, max: 128 } }
       : { w: { min: 7.87, max: 118.11 }, h: { min: 7.87, max: 50.39 } };
 
-  const widthValue =
-    d.w.value === undefined
-      ? unit === "cm"
-        ? plate.widthCm
-        : cmToIn(plate.widthCm)
-      : parseFloat(d.w.value);
+  const toUnit = (cm: number) => (unit === "cm" ? cm : cmToIn(cm));
+  const toMm = (cm: number) =>
+    unit === "cm" ? round2(cm * 10) : round2(cm * 25.4);
 
-  const heightValue =
-    d.h.value === undefined
-      ? unit === "cm"
-        ? plate.heightCm
-        : cmToIn(plate.heightCm)
-      : parseFloat(d.h.value);
+  // Correct fallback for initial values
+  const parseValue = (field: "w" | "h") => {
+    const cm = field === "w" ? plate.widthCm : plate.heightCm;
+    if (draft[field].value === undefined || draft[field].value === "") {
+      return toUnit(cm);
+    }
+    return parseLocaleNumber(draft[field].value, locale) ?? toUnit(cm);
+  };
 
-  const widthInvalid =
-    !isNaN(widthValue) &&
-    (widthValue < ranges.w.min || widthValue > ranges.w.max);
+  const getInvalid = (field: "w" | "h", value: number) =>
+    !isNaN(value) && (value < ranges[field].min || value > ranges[field].max);
 
-  const heightInvalid =
-    !isNaN(heightValue) &&
-    (heightValue < ranges.h.min || heightValue > ranges.h.max);
+  const renderField = (field: "w" | "h", label: string, placeholder: string) => {
+    const value = parseValue(field);
+    const invalid = getInvalid(field, value);
+    const cm = field === "w" ? plate.widthCm : plate.heightCm;
 
-  const heightInMm =
-    idx + 1 !== 1
-      ? unit === "cm"
-        ? plate.heightCm * 10
-        : plate.heightCm * 25.4
-      : "";
-
-  const widthInMm =
-    idx + 1 !== 1
-      ? unit === "cm"
-        ? plate.widthCm * 10
-        : plate.widthCm * 25.4
-      : "";
+    return (
+      <div className="field">
+        {idx !== 0 && (
+          <div className="row mm">
+            <div className="label">{label}</div>
+            <div className="range">
+              {ranges[field].min}–{ranges[field].max} {unit}
+            </div>
+          </div>
+        )}
+        <label className={`input ${invalid ? "invalid" : ""}`} title={label}>
+          <input
+            inputMode="decimal"
+            value={
+              draft[field].value === undefined || draft[field].value === ""
+                ? formatLocaleNumber(value, locale) // ✅ show plate’s initial value
+                : draft[field].value
+            }
+            onFocus={() => beginEdit(plate.id, field, cm)}
+            onChange={(e) => onChangeDraft(plate.id, field, e.target.value)}
+            onBlur={() => {
+              commit(plate.id, field);
+              const parsed = parseLocaleNumber(draft[field].value, locale);
+              if (parsed !== null) {
+                onChangeDraft(
+                  plate.id,
+                  field,
+                  formatLocaleNumber(parsed, locale)
+                );
+              }
+            }}
+            onKeyDown={(e) => e.key === "Enter" && commit(plate.id, field)}
+            aria-invalid={invalid || false}
+            placeholder={placeholder}
+          />
+          <span className="small">{unit}</span>
+          {invalid && (
+            <span className="error-badge">
+              {ranges[field].min}–{ranges[field].max} {unit}
+            </span>
+          )}
+        </label>
+        {idx !== 0 && (
+          <span className="mm-text">{`${toMm(cm)} mm`}</span>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div key={plate.id} data-id={plate.id} className="sortableItem" {...dragProps}>
@@ -88,102 +117,11 @@ export default function PlateItem({
       <div className={`badge-circle ${(idx + 1) % 2 !== 0 ? "badge-circle-1" : ""}`}>
         {idx + 1}
       </div>
-      <div className="mobile_style" style={{ justifyContent: "space-between" }}>
-        <div className="row" style={{ marginTop: ".25rem" }}>
-          {/* Width */}
-          <div style={{ textAlign: "center", marginBottom: ".55rem", width: "100%" }}>
-            {idx + 1 !== 1 && (
-              <div className="row mm" style={{ margin: ".25rem 0" }}>
-                <div style={{ fontWeight: "600", fontSize: ".9rem" }}>Breite</div>
-                <div style={{ fontSize: ".7rem" }}>
-                  {ranges.w.min}–{ranges.w.max} {unit}
-                </div>
-              </div>
-            )}
 
-            <label className={`input ${widthInvalid ? "invalid" : ""}`} title="Width">
-              <input
-                inputMode="decimal"
-                value={
-                  d.w.value === undefined
-                    ? formatLocaleNumber(widthValue, locale)
-                    : d.w.value
-                }
-                onFocus={() => beginEdit(plate.id, "w", plate.widthCm)}
-                onChange={(e) => onChangeDraft(plate.id, "w", e.target.value)}
-                onBlur={() => commit(plate.id, "w")}
-                onKeyDown={(e) => handleKeyDown(e, "w")}
-                aria-invalid={widthInvalid || false}
-                placeholder="30"
-              />
-              <span className="small">{unit}</span>
-
-              {widthInvalid && (
-                <span className="error-badge">
-                  {ranges.w.min}–{ranges.w.max} {unit}
-                </span>
-              )}
-            </label>
-
-            <span
-              style={{
-                margin: ".55rem 0",
-                fontSize: ".8rem",
-                textAlign: "center",
-                fontWeight: "500",
-                color: "gray",
-              }}
-            >
-              {widthInMm !== "" ? `${widthInMm} mm` : ""}
-            </span>
-          </div>
-
-          {/* Height */}
-          <div style={{ textAlign: "center", marginBottom: ".55rem", width: "100%" }}>
-            {idx + 1 !== 1 && (
-              <div className="row mm" style={{ margin: ".25rem 0" }}>
-                <div style={{ fontWeight: "600", fontSize: ".9rem" }}>Höhe</div>
-                <div style={{ fontSize: ".7rem" }}>
-                  {ranges.h.min}–{ranges.h.max} {unit}
-                </div>
-              </div>
-            )}
-            <label className={`input ${heightInvalid ? "invalid" : ""}`} title="Height">
-              <input
-                inputMode="decimal"
-                value={
-                  d.h.value === undefined
-                    ? formatLocaleNumber(heightValue, locale)
-                    : d.h.value
-                }
-                onFocus={() => beginEdit(plate.id, "h", plate.heightCm)}
-                onChange={(e) => onChangeDraft(plate.id, "h", e.target.value)}
-                onBlur={() => commit(plate.id, "h")}
-                onKeyDown={(e) => handleKeyDown(e, "h")}
-                aria-invalid={heightInvalid || false}
-                placeholder="30"
-              />
-              <span className="small">{unit}</span>
-
-              {heightInvalid && (
-                <span className="error-badge">
-                  {ranges.h.min}–{ranges.h.max} {unit}
-                </span>
-              )}
-            </label>
-
-            <span
-              style={{
-                margin: ".55rem 0",
-                fontSize: ".8rem",
-                textAlign: "center",
-                fontWeight: "500",
-                color: "gray",
-              }}
-            >
-              {heightInMm !== "" ? `${heightInMm} mm` : ""}
-            </span>
-          </div>
+      <div className="mobile_style">
+        <div className="row">
+          {renderField("w", "Breite", "30")}
+          {renderField("h", "Höhe", "30")}
         </div>
       </div>
 
@@ -192,7 +130,7 @@ export default function PlateItem({
         onClick={() => removePlate(plate.id)}
         title="Remove"
       >
-        <span style={{ marginTop: "-2px" }}>-</span>
+        <span>-</span>
       </span>
     </div>
   );

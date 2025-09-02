@@ -54,7 +54,6 @@ export default function CanvasPreview({
       <div className="card" style={{padding: "1rem"}}>
         <div className="row" style={{justifyContent: "space-between"}}>
           <div className="row">
-            <span className="badge">Preview</span>
             <span className="small">
               {plates.length} plate{plates.length > 1 ? "s" : ""}
             </span>
@@ -69,28 +68,6 @@ export default function CanvasPreview({
       <div className="canvasWrap" style={{marginTop: ".75rem", minHeight: 420}}>
         <canvas ref={canvasRef} />
         <div className="handle" />
-      </div>
-
-      <div
-        className="row"
-        style={{marginTop: ".75rem", justifyContent: "space-between"}}
-      >
-        <div className="small">
-          Scale rule: <b>1 cm = 1 px</b> (fit to container, no distortion)
-        </div>
-        <div className="small">
-          Total:{" "}
-          {formatLocaleNumber(
-            unit === "cm" ? totalWidthCm : cmToIn(totalWidthCm),
-            locale
-          )}{" "}
-          {unit} ×{" "}
-          {formatLocaleNumber(
-            unit === "cm" ? maxHeightCm : cmToIn(maxHeightCm),
-            locale
-          )}{" "}
-          {unit}
-        </div>
       </div>
     </section>
   );

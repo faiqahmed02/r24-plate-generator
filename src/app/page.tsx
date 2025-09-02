@@ -1,49 +1,79 @@
 "use client";
 
-import {useEffect, useMemo, useState} from "react";
-import {Draft, Locale, Plate, Unit} from "./component/shared/PlateTypes";
-import {uid, parseLocaleNumber, inToCm} from "./component/shared/NumberUtils";
+import { useEffect, useMemo, useState, useCallback } from "react";
+import { Draft, Locale, Plate, Unit } from "./component/shared/PlateTypes";
+import { uid, parseLocaleNumber, inToCm, formatLocaleNumber } from "./component/shared/NumberUtils";
 import CanvasPreview from "./component/canvas/CanvasPreview";
 import ControlsPanel from "./component/controls/ControlsPanel";
 
+// ✅ constants outside component (no re-creation)
 const STORAGE_KEY = "r24:plate-generator:v1";
 const DEFAULT_IMAGE =
-  "https://images.unsplash.com/photo-1501004318641-b39e6451bec6?q=80&w=1600&auto=format&fit=crop";
+  "https://rueckwand24.com/cdn/shop/files/Kuechenrueckwand-Kuechenrueckwand-Gruene-frische-Kraeuter-KR-000018-HB.jpg?v=1695288356&width=1200";
 
-export default function Page() {
-  const [locale, setLocale] = useState<Locale>("en");
-  const [unit, setUnit] = useState<Unit>("cm");
-  const [plates, setPlates] = useState<Plate[]>([
-    {id: uid(), widthCm: 250, heightCm: 30},
-    {id: uid(), widthCm: 20, heightCm: 30},
-  ]);
-  const [drafts, setDrafts] = useState<Record<string, {w: Draft; h: Draft}>>(
-    {}
-  );
-  const [imgUrl, setImgUrl] = useState<string>(DEFAULT_IMAGE);
+const DEFAULT_PLATES: Plate[] = [
+  { id: uid(), widthCm: 250, heightCm: 128 },
+  { id: uid(), widthCm: 30, heightCm: 30 },
+];
+
+const MIN_W = 20,
+  MAX_W = 300,
+  MIN_H = 30,
+  MAX_H = 128;
+
+const draftDefaults = { w: { value: "" }, h: { value: "" } };
+
+function usePersistentState<T>(
+  key: string,
+  defaultValue: T
+): [T, React.Dispatch<React.SetStateAction<T>>] {
+  const [state, setState] = useState<T>(() => {
+    try {
+      const raw = localStorage.getItem(key);
+      return raw ? JSON.parse(raw) : defaultValue;
+    } catch {
+      return defaultValue;
+    }
+  });
+
+  useEffect(() => {
+    localStorage.setItem(key, JSON.stringify(state));
+  }, [state, key]);
+
+  return [state, setState];
+}
+
+function useImage(url: string | null) {
   const [image, setImage] = useState<HTMLImageElement | null>(null);
 
-  // Load from localStorage
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        if (parsed?.plates?.length) setPlates(parsed.plates);
-        if (parsed?.unit) setUnit(parsed.unit);
-        if (parsed?.locale) setLocale(parsed.locale);
-        if (parsed?.imgUrl) setImgUrl(parsed.imgUrl);
-      }
-    } catch {}
-  }, []);
+    if (!url) return;
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => setImage(img);
+    img.src = url;
+  }, [url]);
 
-  // Persist
-  useEffect(() => {
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({plates, unit, locale, imgUrl})
-    );
-  }, [plates, unit, locale, imgUrl]);
+  return image;
+}
+
+export default function Page() {
+  // State
+  const [locale, setLocale] = useState<Locale>("en");
+  const [unit, setUnit] = useState<Unit>("cm");
+  const [plates, setPlates] = usePersistentState<Plate[]>(
+    `${STORAGE_KEY}:plates`,
+    DEFAULT_PLATES
+  );
+  const [imgUrl, setImgUrl] = usePersistentState<string>(
+    `${STORAGE_KEY}:img`,
+    DEFAULT_IMAGE
+  );
+  const [drafts, setDrafts] = useState<
+    Record<string, { w: Draft; h: Draft }>
+  >({});
+
+  const image = useImage(imgUrl);
 
   // Derived totals
   const totalWidthCm = useMemo(
@@ -55,126 +85,141 @@ export default function Page() {
     [plates]
   );
 
-  // Load image
-  useEffect(() => {
-    const img = new Image();
-    img.crossOrigin = "anonymous";
-    img.onload = () => setImage(img);
-    img.src = imgUrl || DEFAULT_IMAGE;
-  }, [imgUrl]);
+  // Start editing draft
+  const beginEdit = useCallback(
+    (id: string, field: "w" | "h", currentCm: number) => {
+      const value =
+        unit === "cm" ? String(currentCm) : String(currentCm / 2.54);
+      setDrafts((d) => ({
+        ...d,
+        [id]: { ...(d[id] || draftDefaults), [field]: { value } },
+      }));
+    },
+    [unit]
+  );
 
-  const beginEdit = (id: string, field: "w" | "h", currentCm: number) => {
-    setDrafts((d) => ({
-      ...d,
-      [id]: {
-        ...(d[id] || {w: {value: ""}, h: {value: ""}}),
-        [field]: {
-          value: unit === "cm" ? String(currentCm) : String(currentCm / 2.54),
-        },
-      },
-    }));
-  };
+  // Update draft value
+  const onChangeDraft = useCallback(
+    (id: string, field: "w" | "h", raw: string) => {
+      setDrafts((d) => ({
+        ...d,
+        [id]: { ...(d[id] || draftDefaults), [field]: { value: raw } },
+      }));
+    },
+    []
+  );
 
-  const onChangeDraft = (id: string, field: "w" | "h", raw: string) => {
-    setDrafts((d) => ({
-      ...d,
-      [id]: {
-        ...(d[id] || {w: {value: ""}, h: {value: ""}}),
-        [field]: {value: raw},
-      },
-    }));
-  };
+  // Commit draft
+  const commit = useCallback(
+    (id: string, field: "w" | "h") => {
+      const plate = plates.find((p) => p.id === id);
+      if (!plate) return;
 
-  const commit = (id: string, field: "w" | "h") => {
-    const plate = plates.find((p) => p.id === id);
-    if (!plate) return;
+      const draft = drafts[id]?.[field]?.value ?? "";
+      const parsed = parseLocaleNumber(draft, locale);
+      if (parsed == null) {
+        setDrafts((d) => ({
+          ...d,
+          [id]: {
+            ...(d[id] || draftDefaults),
+            [field]: { value: draft, invalid: true },
+          },
+        }));
+        return;
+      }
 
-    const draft = drafts[id]?.[field]?.value ?? "";
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const parsed = parseLocaleNumber(draft, locale);
-    if (parsed == null) {
+      const parsedCm = unit === "in" ? inToCm(parsed) : parsed;
+
+      const valid =
+        (field === "w" && parsedCm >= MIN_W && parsedCm <= MAX_W) ||
+        (field === "h" && parsedCm >= MIN_H && parsedCm <= MAX_H);
+
+      if (!valid) {
+        setDrafts((d) => ({
+          ...d,
+          [id]: {
+            ...(d[id] || draftDefaults),
+            [field]: { value: draft, invalid: true },
+          },
+        }));
+        return;
+      }
+
+      setPlates((arr) =>
+        arr.map((p) =>
+          p.id === id
+            ? { ...p, [field === "w" ? "widthCm" : "heightCm"]: parsedCm }
+            : p
+        )
+      );
+
       setDrafts((d) => ({
         ...d,
         [id]: {
-          ...(d[id] || {w: {value: ""}, h: {value: ""}}),
-          [field]: {value: draft, invalid: true},
+          ...(d[id] || draftDefaults),
+          [field]: { value: draft, invalid: false },
         },
       }));
-      return;
-    }
+    },
+    [plates, unit, locale, drafts, setPlates]
+  );
 
-    // Convert to cm if in inches
-    const parsedCm = unit === "in" ? inToCm(parsed) : parsed;
-
-    // Validation
-    const [minW, maxW] = [20, 300];
-    const [minH, maxH] = [30, 120];
-    const isValid =
-      (field === "w" && parsedCm >= minW && parsedCm <= maxW) ||
-      (field === "h" && parsedCm >= minH && parsedCm <= maxH);
-
-    if (!isValid) {
-      setDrafts((d) => ({
-        ...d,
-        [id]: {
-          ...(d[id] || {w: {value: ""}, h: {value: ""}}),
-          [field]: {value: draft, invalid: true},
-        },
-      }));
-      return;
-    }
-
-    // Update plate in cm
-    setPlates((arr) =>
-      arr.map((p) =>
-        p.id === id
-          ? {...p, [field === "w" ? "widthCm" : "heightCm"]: parsedCm}
-          : p
-      )
-    );
-
-    // Keep draft in user's unit
-    setDrafts((d) => ({
-      ...d,
-      [id]: {
-        ...(d[id] || {w: {value: ""}, h: {value: ""}}),
-        [field]: {value: draft, invalid: false},
-      },
-    }));
-  };
-
-  const addPlate = () => {
+  // Add plate
+  const addPlate = useCallback(() => {
     if (plates.length >= 10) return;
     setPlates((p) => [
       ...p,
       {
         id: uid(),
         widthCm: 30,
-        heightCm: Math.max(30, p[p.length - 1].heightCm),
+        heightCm: 30,
       },
     ]);
-  };
+  }, [plates, setPlates]);
 
-  const removePlate = (id: string) => {
-    if (plates.length <= 1) return;
-    setPlates((arr) => arr.filter((p) => p.id !== id));
-  };
+  // Remove plate
+  const removePlate = useCallback(
+    (id: string) => {
+      if (plates.length <= 1) return;
+      setPlates((arr) => arr.filter((p) => p.id !== id));
+    },
+    [plates, setPlates]
+  );
 
-  const onUpload = (file: File) => {
+  // Image upload handler
+  const onUpload = useCallback((file: File) => {
     const url = URL.createObjectURL(file);
     setImgUrl(url);
-  };
+  }, [setImgUrl]);
+
+// Sync drafts when unit, locale or plates change
+useEffect(() => {
+  setDrafts((prev) => {
+    const next: typeof prev = {};
+    for (const plate of plates) {
+      const existing = prev[plate.id] || draftDefaults;
+
+      const wVal =
+        unit === "cm" ? plate.widthCm : plate.widthCm / 2.54;
+      const hVal =
+        unit === "cm" ? plate.heightCm : plate.heightCm / 2.54;
+
+      next[plate.id] = {
+        w: { value: formatLocaleNumber(wVal, locale) },
+        h: { value: formatLocaleNumber(hVal, locale) },
+      };
+
+      // if user was editing, preserve invalid flag
+      if (existing.w.invalid) next[plate.id].w.invalid = true;
+      if (existing.h.invalid) next[plate.id].h.invalid = true;
+    }
+    return next;
+  });
+}, [unit, locale, plates]);
+
 
   return (
-    <main
-      className="grid"
-      style={{
-        gridTemplateColumns: "minmax(340px, 1fr) 450px",
-        gap: "1.25rem",
-        padding: "1.25rem",
-        alignItems: "start",
-      }}
-    >
+    <main className="pageLayout">
       <CanvasPreview
         plates={plates}
         locale={locale}

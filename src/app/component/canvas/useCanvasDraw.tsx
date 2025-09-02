@@ -47,33 +47,27 @@ export function useCanvasDraw(
       const dx = Math.floor((xCursorCm / totalWidthCm) * cw);
       const dy = ch - plateH;
 
-      // plate background
+      // plate background (rectangle)
       ctx.fillStyle = "#f9fafb";
       ctx.strokeStyle = "#e5e7eb";
       ctx.lineWidth = 1;
-      roundedRect(ctx, dx, dy, plateW, plateH, 10);
-      ctx.fill();
-      ctx.stroke();
+      ctx.fillRect(dx, dy, plateW, plateH);
+      ctx.strokeRect(dx, dy, plateW, plateH);
 
       // draw image inside the plate
       if (image) {
         ctx.save();
         ctx.beginPath();
-        roundedRect(ctx, dx, dy, plateW, plateH, 10);
-        ctx.clip(); // clip to plate shape
+        ctx.rect(dx, dy, plateW, plateH);
+        ctx.clip();
         ctx.drawImage(image, dx, dy, plateW, plateH);
         ctx.restore();
       }
 
-      // plate label
+      // plate label (if needed later)
       ctx.fillStyle = "#111827";
       ctx.globalAlpha = 0.8;
       ctx.font = "12px ui-sans-serif, system-ui, sans-serif";
-      ctx.fillText(
-        `${formatLocaleNumber(unit === "cm" ? p.widthCm : cmToIn(p.widthCm), locale)} ${unit} × ${formatLocaleNumber(unit === "cm" ? p.heightCm : cmToIn(p.heightCm), locale)} ${unit}`,
-        dx + 8,
-        dy + 16
-      );
       ctx.globalAlpha = 1;
 
       // move cursor: add spacing
@@ -82,22 +76,4 @@ export function useCanvasDraw(
   }, [image, locale, unit, plates, totalWidthCm, maxHeightCm]);
 
   return { canvasRef, draw };
-}
-
-function roundedRect(
-  ctx: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  w: number,
-  h: number,
-  r: number
-) {
-  const rr = Math.min(r, w / 2, h / 2);
-  ctx.beginPath();
-  ctx.moveTo(x + rr, y);
-  ctx.arcTo(x + w, y, x + w, y + h, rr);
-  ctx.arcTo(x + w, y + h, x, y + h, rr);
-  ctx.arcTo(x, y + h, x, y, rr);
-  ctx.arcTo(x, y, x + w, y, rr);
-  ctx.closePath();
 }
