@@ -2,7 +2,7 @@
 
 ## Overview
 
-The **R24 Plate Generator System** is a responsive web app for configuring
+The **R24 Plate Generator System** [Live URL](https://r24-plate-generator-one.vercel.app/) is a responsive web app for configuring
 and visualizing custom wall plates.\
 Each plate displays a portion of a shared motif image, updating in real
 time when dimensions or layout change.\
