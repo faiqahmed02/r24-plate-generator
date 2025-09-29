@@ -1,3 +1,4 @@
+"use client";
 import {Plate, Draft, Locale, Unit} from "../shared/PlateTypes";
 import {
   formatLocaleNumber,
@@ -67,7 +68,7 @@ export default function PlateItem({
     const cm = field === "w" ? plate.widthCm : plate.heightCm;
 
     return (
-      <div className="field">
+      <div className="field" style={{marginTop: 10}}>
         {idx !== 0 && (
           <div className="row mm">
             <div className="label">{label}</div>

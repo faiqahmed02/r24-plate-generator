@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, useCallback } from "react";
-import { Draft, Locale, Plate, Unit } from "./component/shared/PlateTypes";
+import { Draft, Locale, MIN_EDGE_SPACE_CM, Plate, SocketGroup, Unit } from "./component/shared/PlateTypes";
 import { uid, parseLocaleNumber, inToCm, formatLocaleNumber } from "./component/shared/NumberUtils";
 import CanvasPreview from "./component/canvas/CanvasPreview";
 import ControlsPanel from "./component/controls/ControlsPanel";
@@ -69,6 +69,16 @@ export default function Page() {
     `${STORAGE_KEY}:img`,
     DEFAULT_IMAGE 
   );
+
+  const [socketGroups, setSocketGroups] = usePersistentState<SocketGroup[]>(
+    `${STORAGE_KEY}:sockets`,
+    []
+  );
+
+  
+
+  const [socketsEnabled, setSocketsEnabled] = useState(false);
+
   const [drafts, setDrafts] = useState<
     Record<string, { w: Draft; h: Draft }>
   >({});
@@ -222,6 +232,28 @@ useEffect(() => {
   });
 }, [unit, locale, plates]);
 
+useEffect(() => {
+  if (socketsEnabled) {
+    // find a plate big enough
+    const targetPlate = plates.find(
+      (p) => p.widthCm >= 30 && p.heightCm >= 30
+    );
+    if (targetPlate && socketGroups.length === 0) {
+      setSocketGroups([
+        {
+          id: uid(),
+          plateId: targetPlate.id,
+          xCm: MIN_EDGE_SPACE_CM, // anchor for vertical
+          yCm: MIN_EDGE_SPACE_CM, // anchor for horizontal
+          count: 1,
+          direction: "horizontal",
+        },
+      ]);
+    }
+  }
+}, [socketsEnabled, plates, socketGroups.length, setSocketGroups]);
+
+
 
   return (
     <main className="pageLayout">
@@ -234,6 +266,8 @@ useEffect(() => {
         totalWidthCm={totalWidthCm}
         maxHeightCm={maxHeightCm}
         imgUrl={imgUrl}
+        socketGroups={socketsEnabled ? socketGroups : []}
+        setSocketGroups={setSocketGroups}
       />
       </div>
 
@@ -252,6 +286,10 @@ useEffect(() => {
         imgUrl={imgUrl}
         onUpload={onUpload}
         setPlates={setPlates}
+        socketGroups={socketGroups}
+        setSocketGroups={setSocketGroups}
+        socketsEnabled={socketsEnabled}
+        setSocketsEnabled={setSocketsEnabled}
       />
     </main>
   );
