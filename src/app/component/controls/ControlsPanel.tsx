@@ -65,100 +65,102 @@ export default function ControlsPanel({
 
   return (
     <aside className="aside" style={{padding: "1rem"}}>
-      <div>
-        <h2>
-          Maße. <span style={{fontWeight: "300"}}>Eingeben</span>
-        </h2>
-      </div>
-      <div className="row" style={{justifyContent: "space-between"}}>
-        <div className="row">
-          <label className="input" title="Locale">
-            <span>Locale:</span>
-            <select
-              value={locale}
-              onChange={(e) => setLocale(e.target.value as Locale)}
-              style={{border: "none"}}
-              className="gray-dropdown"
-            >
-              <option value="en">English</option>
-              <option value="de">Deutsch</option>
-            </select>
-          </label>
-
-          <label className="input" title="Units">
-            <span>Units:</span>
-            <select
-              value={unit}
-              onChange={(e) => setUnit(e.target.value as Unit)}
-              style={{border: "none"}}
-              className="gray-dropdown"
-            >
-              <option value="cm">cm</option>
-              <option value="in">in</option>
-            </select>
-          </label>
+      <div style={{height: "100vh"}}>
+        <div>
+          <h2>
+            Maße. <span style={{fontWeight: "300"}}>Eingeben</span>
+          </h2>
         </div>
-      </div>
-
-      <div className="grid" style={{marginTop: "1rem"}}>
         <div className="row" style={{justifyContent: "space-between"}}>
-          <span className="small">1–10 plates</span>
-
-          <label className="btn ghost" style={{cursor: "pointer"}}>
-            <input
-              type="file"
-              accept="image/*"
-              hidden
-              onChange={(e) => e.target.files && onUpload(e.target.files[0])}
-            />
-            Upload motif
-          </label>
-        </div>
-
-        <div className="sortable">
-          {plates.map((p, idx) => (
-            <PlateItem
-              key={p.id}
-              plate={p}
-              idx={idx}
-              drafts={drafts}
-              unit={unit}
-              locale={locale}
-              beginEdit={beginEdit}
-              onChangeDraft={onChangeDraft}
-              commit={commit}
-              removePlate={removePlate}
-              dragProps={{
-                draggable: true,
-                onDragStart: () => handleDragStart(p.id),
-                onDragOver: (e: React.DragEvent<HTMLDivElement>) =>
-                  handleDragOver(e, p.id),
-                onDragEnd: handleDragEnd,
-              }}
-            />
-          ))}
-        </div>
-
-        <div className="row" style={{justifyContent: "space-between"}}>
-          <div
-            className="align-right"
-            style={{
-              textAlign: "right",
-              alignItems: "right",
-              justifyContent: "end",
-              width: "100%",
-            }}
-          >
-            {plates.length !== 10 && (
-              <a
-                className="btn color-[#1ec466]"
-                onClick={addPlate}
-                target="_blank"
-                rel="noreferrer"
+          <div className="row">
+            <label className="input" title="Locale">
+              <span>Locale:</span>
+              <select
+                value={locale}
+                onChange={(e) => setLocale(e.target.value as Locale)}
+                style={{border: "none"}}
+                className="gray-dropdown"
               >
-                Ruckwand hinzuufügen +
-              </a>
-            )}
+                <option value="en">English</option>
+                <option value="de">Deutsch</option>
+              </select>
+            </label>
+
+            <label className="input" title="Units">
+              <span>Units:</span>
+              <select
+                value={unit}
+                onChange={(e) => setUnit(e.target.value as Unit)}
+                style={{border: "none"}}
+                className="gray-dropdown"
+              >
+                <option value="cm">cm</option>
+                <option value="in">in</option>
+              </select>
+            </label>
+          </div>
+        </div>
+
+        <div className="grid" style={{marginTop: "1rem"}}>
+          <div className="row" style={{justifyContent: "space-between"}}>
+            <span className="small">1–10 plates</span>
+
+            <label className="btn ghost" style={{cursor: "pointer"}}>
+              <input
+                type="file"
+                accept="image/*"
+                hidden
+                onChange={(e) => e.target.files && onUpload(e.target.files[0])}
+              />
+              Upload motif
+            </label>
+          </div>
+
+          <div className="sortable">
+            {plates.map((p, idx) => (
+              <PlateItem
+                key={p.id}
+                plate={p}
+                idx={idx}
+                drafts={drafts}
+                unit={unit}
+                locale={locale}
+                beginEdit={beginEdit}
+                onChangeDraft={onChangeDraft}
+                commit={commit}
+                removePlate={removePlate}
+                dragProps={{
+                  draggable: true,
+                  onDragStart: () => handleDragStart(p.id),
+                  onDragOver: (e: React.DragEvent<HTMLDivElement>) =>
+                    handleDragOver(e, p.id),
+                  onDragEnd: handleDragEnd,
+                }}
+              />
+            ))}
+          </div>
+
+          <div className="row" style={{justifyContent: "space-between"}}>
+            <div
+              className="align-right"
+              style={{
+                textAlign: "right",
+                alignItems: "right",
+                justifyContent: "end",
+                width: "100%",
+              }}
+            >
+              {plates.length !== 10 && (
+                <a
+                  className="btn color-[#1ec466]"
+                  onClick={addPlate}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Ruckwand hinzuufügen +
+                </a>
+              )}
+            </div>
           </div>
         </div>
       </div>

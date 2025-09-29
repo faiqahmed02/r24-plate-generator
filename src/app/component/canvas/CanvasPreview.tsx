@@ -49,7 +49,7 @@ export default function CanvasPreview({
   };
 
   return (
-    <section>
+    <section style={{position:"fixed", width: '70%'}}>
       <div className="card" style={{padding: "1rem"}}>
         <div className="row" style={{justifyContent: "space-between"}}>
           <div className="row">
@@ -64,7 +64,7 @@ export default function CanvasPreview({
           </div>
         </div>
       </div>
-      <div className="canvasWrap" style={{marginTop: ".75rem", minHeight: 420}}>
+      <div className="canvasWrap" style={{marginTop: ".75rem", minHeight: 720, minWidth: "100%"}}>
         <canvas ref={canvasRef} />
         <div className="handle" />
       </div>

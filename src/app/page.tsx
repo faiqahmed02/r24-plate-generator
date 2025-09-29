@@ -225,6 +225,7 @@ useEffect(() => {
 
   return (
     <main className="pageLayout">
+      <div style={{position: "relative", height: "100vh"}}>
       <CanvasPreview
         plates={plates}
         locale={locale}
@@ -234,6 +235,7 @@ useEffect(() => {
         maxHeightCm={maxHeightCm}
         imgUrl={imgUrl}
       />
+      </div>
 
       <ControlsPanel
         plates={plates}
