@@ -94,6 +94,7 @@ export default function CanvasPreview({
           if (Math.sqrt(dx * dx + dy * dy) <= c.r) {
             draggingGroupId = sg.id;
             dragOffset = { x: dx, y: dy };
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (e.target as Element).setPointerCapture?.((e as any).pointerId);
             return;
           }
@@ -181,6 +182,7 @@ export default function CanvasPreview({
       draggingGroupId = null;
       dragOffset = { x: 0, y: 0 };
       try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (e.target as Element).releasePointerCapture?.((e as any).pointerId);
       } catch {}
     };

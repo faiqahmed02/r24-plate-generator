@@ -176,6 +176,7 @@ export default function ControlsPanel({
                             dragProps={{
                               draggable: true,
                               onDragStart: () => handleDragStart(p.id),
+                              // eslint-disable-next-line @typescript-eslint/no-explicit-any
                               onDragOver: (e: any) => handleDragOver(e, p.id),
                               onDragEnd: handleDragEnd,
                             }}
