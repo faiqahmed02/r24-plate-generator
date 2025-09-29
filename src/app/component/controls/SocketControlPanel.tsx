@@ -134,10 +134,20 @@ export default function SocketControlPanel({
     setConfirmedGroups((prev) => [...prev, id]);
   const editGroup = (id: string) =>
     setConfirmedGroups((prev) => prev.filter((gId) => gId !== id));
-  const deleteGroup = (id: string) => {
-    setSocketGroups((prev) => prev.filter((g) => g.id !== id));
-    setConfirmedGroups((prev) => prev.filter((gId) => gId !== id));
-  };
+    const deleteGroup = (id: string) => {
+        setSocketGroups((prev) => {
+          // If there’s only 1 group left and sockets are enabled → don’t delete
+          if (prev.length === 1 && socketsEnabled) {
+            setError("Mindestens eine Steckdose muss vorhanden sein");
+            return prev;
+          }
+      
+          const remaining = prev.filter((g) => g.id !== id);
+          return remaining;
+        });
+      
+        setConfirmedGroups((prev) => prev.filter((gId) => gId !== id));
+      };
 
   const addGroup = () => {
     const validPlate = plates.find((p) => p.widthCm >= 30 && p.heightCm >= 30);
