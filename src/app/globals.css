@@ -491,5 +491,19 @@ width: 50%;
     height: auto;
     scroll-snap-type: none;
   }
+  .canvasPreview{
+    position:sticky !important;
+    width: 100% !important;
+  }
+  .mainContent{
+    height: auto !important;
+  }
+  .stepInner{
+    width: 100% !important;
+  }
+
+  .stepContent{
+    padding-right: 0 !important;
+  }
 }
 

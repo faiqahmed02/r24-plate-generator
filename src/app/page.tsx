@@ -257,7 +257,7 @@ useEffect(() => {
 
   return (
     <main className="pageLayout">
-      <div style={{position: "relative", height: "100vh"}}>
+      <div className="mainContent" style={{position: "relative", height: "100vh"}}>
       <CanvasPreview
         plates={plates}
         locale={locale}

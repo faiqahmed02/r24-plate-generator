@@ -208,7 +208,7 @@ export default function CanvasPreview({
   };
 
   return (
-    <section style={{ position: "fixed", width: "68%" }}>
+    <section className="canvasPreview" style={{ position: "fixed", width: "68%" }}>
       <div className="card" style={{ padding: "1rem" }}>
         <div className="row" style={{ justifyContent: "space-between" }}>
           <div className="row">
