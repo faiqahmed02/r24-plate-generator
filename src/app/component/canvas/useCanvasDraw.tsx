@@ -29,7 +29,6 @@ export function useCanvasDraw(
 ) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
-
   const computeLayout = (cw: number, ch: number, scale: number) => {
     const metas: {
       plate: Plate;
@@ -296,14 +295,14 @@ export function useCanvasDraw(
 
     // Draw sockets
     let socketImg: HTMLImageElement | null =
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (window as any).__socket_img || null;
     if (!socketImg) {
       socketImg = new Image();
       socketImg.crossOrigin = "anonymous";
       socketImg.src =
         "https://cdn.shopify.com/s/files/1/0514/2511/6352/files/steckdose_1.png?v=1738943041";
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (window as any).__socket_img = socketImg;
     }
 
@@ -385,7 +384,7 @@ export function useCanvasDraw(
       if (socketCenters.length > 0 && draggingInfo?.id === group.id) {
         let anchorX: number;
         let anchorY: number;
-      
+
         if (group.direction === "vertical" && group.count > 1) {
           const lastSocket = socketCenters[socketCenters.length - 1];
           anchorX = lastSocket.x;
@@ -400,17 +399,17 @@ export function useCanvasDraw(
           anchorX = sumX / socketCenters.length;
           anchorY = sumY / socketCenters.length;
         }
-      
+
         const anchorRadius = 6;
         ctx.beginPath();
         ctx.arc(anchorX, anchorY, anchorRadius, 0, Math.PI * 2);
         ctx.fillStyle = "rgba(255,0,0,0.9)";
         ctx.fill();
-      
+
         const leftX = plateMeta.dx;
         const bottomY = plateMeta.dy + plateMeta.plateH;
         const arrowSize = 12;
-      
+
         // --- Horizontal line (X-axis) ---
         ctx.beginPath();
         ctx.moveTo(anchorX, anchorY);
@@ -418,7 +417,7 @@ export function useCanvasDraw(
         ctx.strokeStyle = "white";
         ctx.lineWidth = 4;
         ctx.stroke();
-      
+
         // Arrow at left
         ctx.beginPath();
         ctx.moveTo(leftX, anchorY);
@@ -428,7 +427,7 @@ export function useCanvasDraw(
         ctx.fillStyle = "white";
         ctx.fill();
         ctx.stroke();
-      
+
         // --- Vertical line (Y-axis) ---
         ctx.beginPath();
         ctx.moveTo(anchorX, anchorY);
@@ -436,7 +435,7 @@ export function useCanvasDraw(
         ctx.strokeStyle = "white";
         ctx.lineWidth = 4;
         ctx.stroke();
-      
+
         // Arrow at bottom
         const angle = Math.PI / 2;
         ctx.beginPath();
@@ -452,22 +451,29 @@ export function useCanvasDraw(
         ctx.lineTo(anchorX, bottomY);
         ctx.fillStyle = "white";
         ctx.fill();
-      
+
         // --- Draw CM values ---
         ctx.fillStyle = "white";
         ctx.font = `${34}px bold Arial`;
         ctx.textAlign = "center";
         ctx.textBaseline = "bottom";
-      
+
         // Horizontal value (X in cm) above anchor
-        ctx.fillText(`${draggingInfo.xCm.toFixed(1)} cm`, anchorX, anchorY - 10);
-      
+        ctx.fillText(
+          `${draggingInfo.xCm.toFixed(1)} cm`,
+          anchorX,
+          anchorY - 10
+        );
+
         // Vertical value (Y in cm) to the right of vertical line
         ctx.textAlign = "left";
         ctx.textBaseline = "middle";
-        ctx.fillText(`${draggingInfo.yCm.toFixed(1)} cm`, anchorX + 8, (anchorY + bottomY) / 2);
+        ctx.fillText(
+          `${draggingInfo.yCm.toFixed(1)} cm`,
+          anchorX + 8,
+          (anchorY + bottomY) / 2
+        );
       }
-      
     }
   }, [
     image,
