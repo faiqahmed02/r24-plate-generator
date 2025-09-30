@@ -344,17 +344,16 @@ export function useCanvasDraw(
       for (let i = 0; i < group.count; i++) {
         const offCmX = group.direction === "horizontal" ? i * step : 0;
         const offCmY = group.direction === "vertical" ? i * step : 0;
-
+      
         const xTopLeft = plateMeta.dx + (currentXCm + offCmX) * plateMeta.scale;
         const yTopLeft =
           plateMeta.dy +
           plateMeta.plateH -
-          (group.direction === "vertical"
-            ? currentYCm * plateMeta.scale - offCmY * plateMeta.scale
-            : (currentYCm + offCmY) * plateMeta.scale);
-
-        socketCenters.push({x: xTopLeft + radius, y: yTopLeft - radius});
-
+          (currentYCm * plateMeta.scale) - // base Y
+          (group.direction === "vertical" ? -offCmY * plateMeta.scale : offCmY * plateMeta.scale);
+      
+        socketCenters.push({ x: xTopLeft + radius, y: yTopLeft - radius });
+      
         if (socketImg && socketImg.complete && socketImg.naturalWidth) {
           const imgAspect = socketImg.naturalWidth / socketImg.naturalHeight;
           const finalDrawH = (SOCKET_DIAM_CM * plateMeta.scale) / imgAspect;
@@ -378,6 +377,8 @@ export function useCanvasDraw(
           ctx.stroke();
         }
       }
+      
+      
 
       // Draw anchor for dragged group
       if (socketCenters.length > 0 && draggingInfo?.id === group.id) {
