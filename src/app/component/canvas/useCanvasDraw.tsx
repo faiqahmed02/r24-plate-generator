@@ -461,7 +461,7 @@ export function useCanvasDraw(
         // Horizontal value (X in cm) above anchor
         ctx.fillText(
           `${draggingInfo.xCm.toFixed(1)} cm`,
-          anchorX,
+          (anchorX + leftX) / 2,
           anchorY - 10
         );
 
