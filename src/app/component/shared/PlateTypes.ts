@@ -21,7 +21,8 @@ export type SocketGroup = {
 export const SOCKET_DIAM_CM = 7.0;
 export const SOCKET_GAP_CM = 0.2;
 
-export const MIN_EDGE_SPACE_CM = 0.3; // Minimum space from edge for first socket
+export const MIN_EDGE_SPACE_CM = 3; // Minimum space from edge for first socket
+export const EDGE_PADDING_CM = 0.3; // padding from plate edges
 
 export type DraggingInfo = {
     id: string;

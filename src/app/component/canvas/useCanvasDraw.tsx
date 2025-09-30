@@ -2,6 +2,7 @@
 
 import {useCallback, useRef} from "react";
 import {
+  EDGE_PADDING_CM,
   Plate,
   SOCKET_DIAM_CM,
   SOCKET_GAP_CM,
@@ -27,7 +28,7 @@ export function useCanvasDraw(
   draggingInfo: DraggingInfo | null = null
 ) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const EDGE_PADDING_CM = 0.3; // padding from plate edges
+
 
   const computeLayout = (cw: number, ch: number, scale: number) => {
     const metas: {
