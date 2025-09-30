@@ -295,12 +295,14 @@ export function useCanvasDraw(
 
     // Draw sockets
     let socketImg: HTMLImageElement | null =
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (window as any).__socket_img || null;
     if (!socketImg) {
       socketImg = new Image();
       socketImg.crossOrigin = "anonymous";
       socketImg.src =
         "https://cdn.shopify.com/s/files/1/0514/2511/6352/files/steckdose_1.png?v=1738943041";
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (window as any).__socket_img = socketImg;
     }
 
