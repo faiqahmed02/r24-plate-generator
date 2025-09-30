@@ -272,6 +272,7 @@ export function useCanvasDraw(
     }
 
     // Draw sockets
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let socketImg: HTMLImageElement | null =
       (window as any).__socket_img || null;
     if (!socketImg) {
@@ -279,6 +280,7 @@ export function useCanvasDraw(
       socketImg.crossOrigin = "anonymous";
       socketImg.src =
         "https://cdn.shopify.com/s/files/1/0514/2511/6352/files/steckdose_1.png?v=1738943041";
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (window as any).__socket_img = socketImg;
     }
 
@@ -376,7 +378,7 @@ export function useCanvasDraw(
         ctx.lineWidth = 2;
         ctx.stroke();
 
-        let arrowSize = 8;
+        const arrowSize = 8;
         let angle = 90;
         // Arrow to left edge
         ctx.beginPath();
