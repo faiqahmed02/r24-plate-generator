@@ -1,8 +1,9 @@
-import React, { useEffect, useRef, useState, useCallback } from "react";
-import { SocketGroup, Plate } from "../shared/PlateTypes";
+import React, {useEffect, useRef, useState, useCallback, useId} from "react";
+import {SocketGroup, Plate} from "../shared/PlateTypes";
 import "./socket.css";
-import { FiEdit2 } from "react-icons/fi";
-import { AiFillDelete } from "react-icons/ai";
+import {FiEdit2} from "react-icons/fi";
+import {AiFillDelete} from "react-icons/ai";
+import {uid} from "../shared/NumberUtils";
 
 const SOCKET_DIAM_CM = 7;
 const SOCKET_GAP_CM = 0.2;
@@ -24,15 +25,15 @@ export default function SocketControlPanel({
 }) {
   const [error, setError] = useState("");
   const [confirmedGroups, setConfirmedGroups] = useState<string[]>([]);
-  const [openMenus, setOpenMenus] = useState<{ [key: string]: boolean }>({});
-  const menuRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+  const [openMenus, setOpenMenus] = useState<{[key: string]: boolean}>({});
+  const menuRefs = useRef<{[key: string]: HTMLDivElement | null}>({});
 
   // Detect clicks outside menu to close
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       Object.entries(menuRefs.current).forEach(([id, ref]) => {
         if (ref && !ref.contains(event.target as Node)) {
-          setOpenMenus((prev) => ({ ...prev, [id]: false }));
+          setOpenMenus((prev) => ({...prev, [id]: false}));
         }
       });
     };
@@ -119,7 +120,7 @@ export default function SocketControlPanel({
       const x = isNaN(newGroup.xCm) ? MIN_EDGE_SPACE_CM : newGroup.xCm;
       const y = isNaN(newGroup.yCm) ? MIN_EDGE_SPACE_CM : newGroup.yCm;
 
-      const updatedGroup = { ...newGroup, xCm: x, yCm: y };
+      const updatedGroup = {...newGroup, xCm: x, yCm: y};
 
       if (!validatePosition(plate, x, y, updatedGroup)) {
         return;
@@ -136,8 +137,10 @@ export default function SocketControlPanel({
 
   const confirmGroup = (id: string) =>
     setConfirmedGroups((prev) => [...prev, id]);
-  const editGroup = (id: string) =>
+  const editGroup = (id: string) => {
     setConfirmedGroups((prev) => prev.filter((gId) => gId !== id));
+    setOpenMenus((prev) => ({...prev, [id]: false}));
+  };
   const deleteGroup = (id: string) => {
     setSocketGroups((prev) => {
       // If there’s only 1 group left and sockets are enabled → don’t delete
@@ -163,7 +166,7 @@ export default function SocketControlPanel({
     setSocketGroups((prev) => [
       ...prev,
       {
-        id: Math.random().toString(36).slice(2, 9),
+        id: uid(),
         plateId: validPlate.id,
         xCm: MIN_EDGE_SPACE_CM,
         yCm: MIN_EDGE_SPACE_CM,
@@ -203,7 +206,7 @@ export default function SocketControlPanel({
                 if (validPlate) {
                   setSocketGroups([
                     {
-                      id: Math.random().toString(36).slice(2, 9),
+                      id: uid(),
                       plateId: validPlate.id,
                       xCm: MIN_EDGE_SPACE_CM,
                       yCm: MIN_EDGE_SPACE_CM,
@@ -233,7 +236,7 @@ export default function SocketControlPanel({
             <div
               key={sg.id}
               className="socket-card"
-              style={!isConfirmed ? { height: "604px" } : {}}
+              style={!isConfirmed ? {height: "604px"} : {}}
             >
               <div className="card-header">
                 {isConfirmed && (
@@ -242,7 +245,7 @@ export default function SocketControlPanel({
                     ref={(el) => {
                       menuRefs.current[sg.id] = el;
                     }}
-                    style={{ position: "relative" }}
+                    style={{position: "relative"}}
                   >
                     <button
                       onClick={() =>
@@ -283,7 +286,7 @@ export default function SocketControlPanel({
               </div>
 
               {!isConfirmed ? (
-                <div>
+                <div style={{width: "100%"}}>
                   {/* Plate selection */}
                   <div className="field">
                     <div className="field">
@@ -302,8 +305,7 @@ export default function SocketControlPanel({
                               isEligible &&
                               p.id ===
                                 plates.find(
-                                  (pl) =>
-                                    pl.widthCm >= 30 && pl.heightCm >= 30
+                                  (pl) => pl.widthCm >= 30 && pl.heightCm >= 30
                                 )?.id);
 
                           return (
@@ -314,7 +316,7 @@ export default function SocketControlPanel({
                                 } ${!isEligible ? "disabled" : ""}`}
                                 onClick={() =>
                                   isEligible
-                                    ? updateGroup(idx, { ...sg, plateId: p.id })
+                                    ? updateGroup(idx, {...sg, plateId: p.id})
                                     : setError(
                                         "Diese Rückwand ist kleiner als 30×30 cm und nicht geeignet für Steckdosen"
                                       )
@@ -322,11 +324,11 @@ export default function SocketControlPanel({
                               />
                               <p>
                                 {p.widthCm} × {p.heightCm} cm{" "}
-                                {!isEligible && (
+                                {/* {!isEligible && (
                                   <span style={{ color: "red" }}>
                                     (nicht geeignet)
                                   </span>
-                                )}
+                                )} */}
                               </p>
                             </div>
                           );
@@ -337,7 +339,7 @@ export default function SocketControlPanel({
 
                   {/* Count & Direction */}
                   <div className="field row">
-                    <div className="field" style={{ padding: 0 }}>
+                    <div className="field" style={{padding: 0}}>
                       <p className="card-title">Anzahl</p>
                       <div className="button-group">
                         {[1, 2, 3, 4, 5].map((num) => (
@@ -347,7 +349,7 @@ export default function SocketControlPanel({
                               sg.count === num ? "active" : ""
                             }`}
                             onClick={() =>
-                              updateGroup(idx, { ...sg, count: num })
+                              updateGroup(idx, {...sg, count: num})
                             }
                             disabled={num > maxSockets}
                           >
@@ -357,7 +359,7 @@ export default function SocketControlPanel({
                       </div>
                     </div>
 
-                    <div className="field" style={{ padding: 0 }}>
+                    <div className="field" style={{padding: 0}}>
                       <p className="card-title">Direction</p>
                       <div className="button-group">
                         {(["horizontal", "vertical"] as const).map((dir) => (
@@ -367,7 +369,7 @@ export default function SocketControlPanel({
                               sg.direction === dir ? "active" : ""
                             }`}
                             onClick={() =>
-                              updateGroup(idx, { ...sg, direction: dir })
+                              updateGroup(idx, {...sg, direction: dir})
                             }
                           >
                             {dir === "horizontal" ? "Horizontal" : "Vertical"}
@@ -379,12 +381,12 @@ export default function SocketControlPanel({
 
                   {/* Position */}
                   <div className="field row">
-                    <div style={{ width: "45%" }}>
+                    <div style={{width: "45%"}}>
                       <p>Abstand von Links</p>
                       <label className="input">
                         <input
                           type="number"
-                          value={sg.xCm}
+                          value={String(Number(sg.xCm).toFixed(2))}
                           step={0.1}
                           min={MIN_EDGE_SPACE_CM}
                           max={plate.widthCm - MIN_EDGE_SPACE_CM}
@@ -399,14 +401,14 @@ export default function SocketControlPanel({
                       </label>
                     </div>
 
-                    <span style={{ marginTop: "40px" }}>x</span>
+                    <span style={{marginTop: "40px"}}>x</span>
 
-                    <div style={{ width: "45%" }}>
+                    <div style={{width: "45%"}}>
                       <p>Abstand von unten</p>
                       <label className="input">
                         <input
                           type="number"
-                          value={sg.yCm}
+                          value={String(Number(sg.yCm).toFixed(2))}
                           step={0.1}
                           min={MIN_EDGE_SPACE_CM}
                           max={plate.heightCm - MIN_EDGE_SPACE_CM}
@@ -424,12 +426,12 @@ export default function SocketControlPanel({
 
                   <div
                     className="field"
-                    style={{ backgroundColor: "transparent" }}
+                    style={{backgroundColor: "transparent"}}
                   >
                     <button
                       className="btn"
                       onClick={() => confirmGroup(sg.id)}
-                      style={{ float: "right" }}
+                      style={{float: "right"}}
                     >
                       Confirm
                     </button>
@@ -449,7 +451,7 @@ export default function SocketControlPanel({
       {error && <p className="error">{error}</p>}
 
       {/* Add button */}
-      {socketsEnabled && allConfirmed && (
+      {socketsEnabled && (
         <button className="btn" onClick={addGroup}>
           + Add Socket Group
         </button>

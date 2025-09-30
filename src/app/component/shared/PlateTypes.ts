@@ -22,3 +22,11 @@ export const SOCKET_DIAM_CM = 7.0;
 export const SOCKET_GAP_CM = 0.2;
 
 export const MIN_EDGE_SPACE_CM = 3.0; // Minimum space from edge for first socket
+
+export type DraggingInfo = {
+    id: string;
+    xCm: number;
+    yCm: number;
+    dragOffsetScreenX: number;
+    dragOffsetScreenY: number;
+  };

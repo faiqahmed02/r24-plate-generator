@@ -1,9 +1,14 @@
 "use client";
 
-import { useCallback, useRef } from "react";
-import { Plate, SOCKET_DIAM_CM, SOCKET_GAP_CM, SocketGroup } from "../shared/PlateTypes";
+import {useCallback, useRef} from "react";
+import {
+  Plate,
+  SOCKET_DIAM_CM,
+  SOCKET_GAP_CM,
+  SocketGroup,
+} from "../shared/PlateTypes";
 
-type DraggingInfo = {
+export type DraggingInfo = {
   id: string;
   xCm: number;
   yCm: number;
@@ -24,7 +29,14 @@ export function useCanvasDraw(
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   const computeLayout = (cw: number, ch: number, scale: number) => {
-    const metas: { plate: Plate; plateW: number; plateH: number; dx: number; dy: number; scale: number }[] = [];
+    const metas: {
+      plate: Plate;
+      plateW: number;
+      plateH: number;
+      dx: number;
+      dy: number;
+      scale: number;
+    }[] = [];
     let xCursorCm = 0;
     const spacingCm = 1;
 
@@ -32,8 +44,8 @@ export function useCanvasDraw(
       const plateW = Math.max(1, Math.floor(plate.widthCm * scale));
       const plateH = Math.max(1, Math.floor(plate.heightCm * scale));
       const dx = Math.floor((xCursorCm / totalWidthCm) * cw);
-      const dy = ch - plateH;
-      metas.push({ plate, plateW, plateH, dx, dy, scale });
+      const dy = ch - plateH; // bottom-aligned
+      metas.push({plate, plateW, plateH, dx, dy, scale});
       xCursorCm += plate.widthCm + spacingCm;
     }
 
@@ -52,29 +64,40 @@ export function useCanvasDraw(
 
       const cw = Math.max(1, Math.floor(totalWidthCm * scale));
       const ch = Math.max(1, Math.floor(maxHeightCm * scale));
-
       const metas = computeLayout(cw, ch, scale);
+
       const plateMeta = metas.find((m) => m.plate.id === group.plateId);
       if (!plateMeta) return [];
 
-      const coords: { x: number; y: number; r: number }[] = [];
+      const coords: {x: number; y: number; r: number}[] = [];
       const stepCm = SOCKET_DIAM_CM + SOCKET_GAP_CM;
       const radiusPx = (SOCKET_DIAM_CM / 2) * plateMeta.scale;
 
-      const currentXCm = draggingInfo?.id === group.id ? draggingInfo.xCm : group.xCm;
-      const currentYCm = draggingInfo?.id === group.id ? draggingInfo.yCm : group.yCm;
+      const currentXCm =
+        draggingInfo?.id === group.id
+          ? draggingInfo.xCm + draggingInfo.dragOffsetScreenX / plateMeta.scale
+          : group.xCm;
+
+      const currentYCm =
+        draggingInfo?.id === group.id
+          ? draggingInfo.yCm + draggingInfo.dragOffsetScreenY / plateMeta.scale
+          : group.yCm;
 
       for (let i = 0; i < group.count; i++) {
         const offCmX = group.direction === "horizontal" ? i * stepCm : 0;
         const offCmY = group.direction === "vertical" ? i * stepCm : 0;
 
-        const xBottomLeftPx = plateMeta.dx + (currentXCm + offCmX) * plateMeta.scale;
-        const yBottomLeftPx = plateMeta.dy + plateMeta.plateH - (currentYCm + offCmY) * plateMeta.scale;
+        const xBottomLeftPx =
+          plateMeta.dx + (currentXCm + offCmX) * plateMeta.scale;
+        const yBottomLeftPx =
+          plateMeta.dy +
+          plateMeta.plateH -
+          (currentYCm + offCmY) * plateMeta.scale;
 
         const xCenterPx = xBottomLeftPx + radiusPx;
         const yCenterPx = yBottomLeftPx - radiusPx;
 
-        coords.push({ x: xCenterPx, y: yCenterPx, r: radiusPx });
+        coords.push({x: xCenterPx, y: yCenterPx, r: radiusPx});
       }
 
       return coords;
@@ -85,7 +108,7 @@ export function useCanvasDraw(
   const screenToCm = useCallback(
     (plateId: string, screenX: number, screenY: number) => {
       const canvas = canvasRef.current;
-      if (!canvas) return { xCm: 0, yCm: 0 };
+      if (!canvas) return {xCm: 0, yCm: 0};
 
       const wrap = canvas.parentElement!;
       const pad = 24;
@@ -97,12 +120,12 @@ export function useCanvasDraw(
       const ch = Math.max(1, Math.floor(maxHeightCm * scale));
       const metas = computeLayout(cw, ch, scale);
       const plateMeta = metas.find((m) => m.plate.id === plateId);
-      if (!plateMeta) return { xCm: 0, yCm: 0 };
+      if (!plateMeta) return {xCm: 0, yCm: 0};
 
       const xCm = (screenX - plateMeta.dx) / plateMeta.scale;
       const yCm = (plateMeta.dy + plateMeta.plateH - screenY) / plateMeta.scale;
 
-      return { xCm, yCm };
+      return {xCm, yCm};
     },
     [plates, totalWidthCm, maxHeightCm]
   );
@@ -110,7 +133,7 @@ export function useCanvasDraw(
   const cmToScreen = useCallback(
     (plateId: string, cmX: number, cmY: number) => {
       const canvas = canvasRef.current;
-      if (!canvas) return { screenX: 0, screenY: 0 };
+      if (!canvas) return {screenX: 0, screenY: 0};
 
       const wrap = canvas.parentElement!;
       const pad = 24;
@@ -122,12 +145,12 @@ export function useCanvasDraw(
       const ch = Math.max(1, Math.floor(maxHeightCm * scale));
       const metas = computeLayout(cw, ch, scale);
       const plateMeta = metas.find((m) => m.plate.id === plateId);
-      if (!plateMeta) return { screenX: 0, screenY: 0 };
+      if (!plateMeta) return {screenX: 0, screenY: 0};
 
       const screenX = plateMeta.dx + cmX * plateMeta.scale;
       const screenY = plateMeta.dy + plateMeta.plateH - cmY * plateMeta.scale;
 
-      return { screenX, screenY };
+      return {screenX, screenY};
     },
     [plates, totalWidthCm, maxHeightCm]
   );
@@ -160,7 +183,7 @@ export function useCanvasDraw(
     const spacingCm = 1;
     for (const plate of plates) {
       const plateMeta = metas.find((m) => m.plate.id === plate.id)!;
-      const { dx, dy, plateW, plateH } = plateMeta;
+      const {dx, dy, plateW, plateH} = plateMeta;
 
       ctx.fillStyle = "#f9fafb";
       ctx.strokeStyle = "#e5e7eb";
@@ -173,10 +196,15 @@ export function useCanvasDraw(
       let segmentStartX = xCursorCm;
 
       while (remainingWidthCm > 0) {
-        const segmentIndexX = Math.floor((segmentStartX - xCursorCm) / baseImageWidthCm);
+        const segmentIndexX = Math.floor(
+          (segmentStartX - xCursorCm) / baseImageWidthCm
+        );
         const isMirrorX = segmentIndexX % 2 === 1;
         const offsetXcm = segmentStartX % baseImageWidthCm;
-        const segmentWidthCm = Math.min(baseImageWidthCm - offsetXcm, remainingWidthCm);
+        const segmentWidthCm = Math.min(
+          baseImageWidthCm - offsetXcm,
+          remainingWidthCm
+        );
 
         let remainingHeightCm = plate.heightCm;
         let segmentStartY = 0;
@@ -186,18 +214,31 @@ export function useCanvasDraw(
           const isMirrorY = segmentIndexY % 2 === 1;
 
           const offsetYcm = segmentStartY % baseImageHeightCm;
-          const segmentHeightCm = Math.min(baseImageHeightCm - offsetYcm, remainingHeightCm);
-
-          const sx = Math.floor((offsetXcm / baseImageWidthCm) * image.width);
-          const sw = Math.floor((segmentWidthCm / baseImageWidthCm) * image.width);
-          const sh = Math.floor((segmentHeightCm / baseImageHeightCm) * image.height);
-          const sy = Math.max(
-            0,
-            image.height - sh - Math.floor((offsetYcm / baseImageHeightCm) * image.height)
+          const segmentHeightCm = Math.min(
+            baseImageHeightCm - offsetYcm,
+            remainingHeightCm
           );
 
-          const dxSeg = Math.floor(((segmentStartX - xCursorCm) / plate.widthCm) * plateW + dx);
-          const dySeg = Math.floor((segmentStartY / plate.heightCm) * plateH + dy);
+          const sx = Math.floor((offsetXcm / baseImageWidthCm) * image.width);
+          const sw = Math.floor(
+            (segmentWidthCm / baseImageWidthCm) * image.width
+          );
+          const sh = Math.floor(
+            (segmentHeightCm / baseImageHeightCm) * image.height
+          );
+          const sy = Math.max(
+            0,
+            image.height -
+              sh -
+              Math.floor((offsetYcm / baseImageHeightCm) * image.height)
+          );
+
+          const dxSeg = Math.floor(
+            ((segmentStartX - xCursorCm) / plate.widthCm) * plateW + dx
+          );
+          const dySeg = Math.floor(
+            (segmentStartY / plate.heightCm) * plateH + dy
+          );
           const dwSeg = Math.floor((segmentWidthCm / plate.widthCm) * plateW);
           const dhSeg = Math.floor((segmentHeightCm / plate.heightCm) * plateH);
 
@@ -206,7 +247,17 @@ export function useCanvasDraw(
           const cy = dySeg + dhSeg / 2;
           ctx.translate(cx, cy);
           ctx.scale(isMirrorX ? -1 : 1, isMirrorY ? -1 : 1);
-          ctx.drawImage(image, sx, sy, sw, sh, -dwSeg / 2, -dhSeg / 2, dwSeg, dhSeg);
+          ctx.drawImage(
+            image,
+            sx,
+            sy,
+            sw,
+            sh,
+            -dwSeg / 2,
+            -dhSeg / 2,
+            dwSeg,
+            dhSeg
+          );
           ctx.restore();
 
           remainingHeightCm -= segmentHeightCm;
@@ -221,14 +272,13 @@ export function useCanvasDraw(
     }
 
     // Draw sockets
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let socketImg: HTMLImageElement | null = (window as any).__socket_img || null;
+    let socketImg: HTMLImageElement | null =
+      (window as any).__socket_img || null;
     if (!socketImg) {
       socketImg = new Image();
       socketImg.crossOrigin = "anonymous";
       socketImg.src =
         "https://cdn.shopify.com/s/files/1/0514/2511/6352/files/steckdose_1.png?v=1738943041";
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (window as any).__socket_img = socketImg;
     }
 
@@ -239,33 +289,48 @@ export function useCanvasDraw(
       const step = SOCKET_DIAM_CM + SOCKET_GAP_CM;
       const radius = (SOCKET_DIAM_CM / 2) * plateMeta.scale;
 
-      const drawXCm = draggingInfo?.id === group.id ? draggingInfo.xCm : group.xCm;
-      const drawYCm = draggingInfo?.id === group.id ? draggingInfo.yCm : group.yCm;
+      const currentXCm =
+        draggingInfo?.id === group.id
+          ? draggingInfo.xCm + draggingInfo.dragOffsetScreenX / plateMeta.scale
+          : group.xCm;
 
+      const currentYCm =
+        draggingInfo?.id === group.id
+          ? draggingInfo.yCm + draggingInfo.dragOffsetScreenY / plateMeta.scale
+          : group.yCm;
+
+      const socketCenters: {x: number; y: number}[] = [];
+
+      const EDGE_MARGIN_CM = 3;   // 3 cm from plate edges
+      const GROUP_MARGIN_CM = 4;  // 4 cm between socket groups
+      
       for (let i = 0; i < group.count; i++) {
         const offCmX = group.direction === "horizontal" ? i * step : 0;
         const offCmY = group.direction === "vertical" ? i * step : 0;
-
-        const xBottomLeftPx = plateMeta.dx + (drawXCm + offCmX) * plateMeta.scale;
-        const yBottomLeftPx = plateMeta.dy + plateMeta.plateH - (drawYCm + offCmY) * plateMeta.scale;
-
-        const drawW = SOCKET_DIAM_CM * plateMeta.scale;
-        const drawH = drawW;
-        const xTopLeft = xBottomLeftPx;
-        const yTopLeft = yBottomLeftPx - drawH;
-
+      
+        // Enforce edge margin
+        const xCmWithMargin = Math.max(EDGE_MARGIN_CM, currentXCm + offCmX);
+        const yCmWithMargin = Math.max(EDGE_MARGIN_CM, currentYCm + offCmY);
+      
+        // Apply group spacing
+        const xTopLeft = plateMeta.dx + xCmWithMargin * plateMeta.scale;
+        const yTopLeft =
+          plateMeta.dy +
+          plateMeta.plateH -
+          yCmWithMargin * plateMeta.scale;
+      
+        socketCenters.push({ x: xTopLeft + radius, y: yTopLeft - radius });
+      
         if (socketImg && socketImg.complete && socketImg.naturalWidth) {
           const imgAspect = socketImg.naturalWidth / socketImg.naturalHeight;
-          const finalDrawH = drawW / imgAspect;
+          const finalDrawH = (SOCKET_DIAM_CM * plateMeta.scale) / imgAspect;
           ctx.save();
-          ctx.translate(xTopLeft, yTopLeft);
-          ctx.drawImage(socketImg, 0, 0, drawW, finalDrawH);
+          ctx.translate(xTopLeft, yTopLeft - 2 * radius);
+          ctx.drawImage(socketImg, 0, 0, SOCKET_DIAM_CM * plateMeta.scale, finalDrawH);
           ctx.restore();
         } else {
-          const xCenterPx = xTopLeft + radius;
-          const yCenterPx = yTopLeft + radius;
           ctx.beginPath();
-          ctx.arc(xCenterPx, yCenterPx, radius, 0, Math.PI * 2);
+          ctx.arc(xTopLeft + radius, yTopLeft - radius, radius, 0, Math.PI * 2);
           ctx.fillStyle = "rgba(200,200,200,0.9)";
           ctx.fill();
           ctx.strokeStyle = "#222";
@@ -273,19 +338,89 @@ export function useCanvasDraw(
           ctx.stroke();
         }
       }
+      
 
-      // Draw anchor point for the dragging group
-      if (draggingInfo?.id === group.id) {
+      if (socketCenters.length > 0 && draggingInfo?.id === group.id) {
+        let anchorX: number;
+        let anchorY: number;
+
+        if (group.direction === "vertical" && group.count > 1) {
+          const lastSocket = socketCenters[socketCenters.length - 1];
+          anchorX = lastSocket.x;
+          anchorY = lastSocket.y;
+        } else if (group.direction === "horizontal" && group.count > 1) {
+          const firstSocket = socketCenters[0];
+          anchorX = firstSocket.x;
+          anchorY = firstSocket.y;
+        } else {
+          const sumX = socketCenters.reduce((acc, c) => acc + c.x, 0);
+          const sumY = socketCenters.reduce((acc, c) => acc + c.y, 0);
+          anchorX = sumX / socketCenters.length;
+          anchorY = sumY / socketCenters.length;
+        }
+
         const anchorRadius = 6;
-        const anchorX = plateMeta.dx + drawXCm * plateMeta.scale + radius;
-        const anchorY = plateMeta.dy + plateMeta.plateH - drawYCm * plateMeta.scale - radius;
         ctx.beginPath();
         ctx.arc(anchorX, anchorY, anchorRadius, 0, Math.PI * 2);
         ctx.fillStyle = "rgba(255,0,0,0.9)";
         ctx.fill();
+
+        const rightX = plateMeta.dx + plateMeta.plateW;
+        const bottomY = plateMeta.dy + plateMeta.plateH;
+        const leftX = plateMeta.dx;
+
+        ctx.beginPath();
+        ctx.moveTo(anchorX, anchorY);
+        ctx.lineTo(leftX, anchorY);
+        ctx.strokeStyle = "white";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        let arrowSize = 8;
+        let angle = 90;
+        // Arrow to left edge
+        ctx.beginPath();
+        ctx.moveTo(leftX, anchorY);
+        ctx.lineTo(leftX + arrowSize, anchorY - arrowSize / 2);
+        ctx.lineTo(leftX + arrowSize, anchorY + arrowSize / 2);
+        ctx.closePath();
+        ctx.fillStyle = "white";
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(anchorX, anchorY);
+        ctx.lineTo(anchorX, bottomY);
+        ctx.strokeStyle = "white";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        angle = Math.PI / 2;
+        ctx.beginPath();
+        ctx.moveTo(anchorX, bottomY);
+        ctx.lineTo(
+          anchorX - arrowSize * Math.cos(angle - Math.PI / 6),
+          bottomY - arrowSize * Math.sin(angle - Math.PI / 6)
+        );
+        ctx.lineTo(
+          anchorX - arrowSize * Math.cos(angle + Math.PI / 6),
+          bottomY - arrowSize * Math.sin(angle + Math.PI / 6)
+        );
+        ctx.lineTo(anchorX, bottomY);
+        ctx.fillStyle = "white";
+        ctx.fill();
       }
     }
-  }, [image, plates, totalWidthCm, maxHeightCm, baseImageWidthCm, baseImageHeightCm, socketGroups, draggingInfo]);
+  }, [
+    image,
+    plates,
+    totalWidthCm,
+    maxHeightCm,
+    baseImageWidthCm,
+    baseImageHeightCm,
+    socketGroups,
+    draggingInfo,
+  ]);
 
-  return { canvasRef, draw, getSocketScreenCoords, screenToCm, cmToScreen };
+  return {canvasRef, draw, getSocketScreenCoords, screenToCm, cmToScreen};
 }

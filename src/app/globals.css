@@ -125,6 +125,7 @@ select {
   border-radius: 0.75rem;
   padding: 0.45rem 0.6rem;
   position: relative;
+  justify-content: space-between;
 }
 .input input {
   width: 11ch;

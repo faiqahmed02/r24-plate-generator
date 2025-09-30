@@ -119,7 +119,7 @@ export default function PlateItem({
   return (
     <div
       key={plate.id}
-      data-id={plate.id}
+      // data-id={plate.id}
       className="sortableItem"
       {...dragProps}
     >

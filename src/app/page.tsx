@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, useCallback } from "react";
+import { useEffect, useMemo, useState, useCallback, useId } from "react";
 import { Draft, Locale, MIN_EDGE_SPACE_CM, Plate, SocketGroup, Unit } from "./component/shared/PlateTypes";
 import { uid, parseLocaleNumber, inToCm, formatLocaleNumber } from "./component/shared/NumberUtils";
 import CanvasPreview from "./component/canvas/CanvasPreview";
@@ -234,17 +234,16 @@ useEffect(() => {
 
 useEffect(() => {
   if (socketsEnabled) {
-    // find a plate big enough
     const targetPlate = plates.find(
       (p) => p.widthCm >= 30 && p.heightCm >= 30
     );
     if (targetPlate && socketGroups.length === 0) {
       setSocketGroups([
         {
-          id: uid(),
+          id: uid(), // ✅ stable across SSR/client
           plateId: targetPlate.id,
-          xCm: MIN_EDGE_SPACE_CM, // anchor for vertical
-          yCm: MIN_EDGE_SPACE_CM, // anchor for horizontal
+          xCm: MIN_EDGE_SPACE_CM,
+          yCm: MIN_EDGE_SPACE_CM,
           count: 1,
           direction: "horizontal",
         },
@@ -252,6 +251,7 @@ useEffect(() => {
     }
   }
 }, [socketsEnabled, plates, socketGroups.length, setSocketGroups]);
+
 
 
 
