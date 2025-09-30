@@ -73,15 +73,34 @@ export function useCanvasDraw(
       const stepCm = SOCKET_DIAM_CM + SOCKET_GAP_CM;
       const radiusPx = (SOCKET_DIAM_CM / 2) * plateMeta.scale;
 
+      // Calculate clamped positions to keep sockets inside plate
+      const groupWidthCm =
+        group.direction === "horizontal"
+          ? stepCm * (group.count - 1) + SOCKET_DIAM_CM
+          : SOCKET_DIAM_CM;
+      const groupHeightCm =
+        group.direction === "vertical"
+          ? stepCm * (group.count - 1) + SOCKET_DIAM_CM
+          : SOCKET_DIAM_CM;
+
+      const clampedXCm = Math.min(
+        Math.max(0, group.xCm),
+        plateMeta.plate.widthCm - groupWidthCm
+      );
+      const clampedYCm = Math.min(
+        Math.max(0, group.yCm),
+        plateMeta.plate.heightCm - groupHeightCm
+      );
+
       const currentXCm =
         draggingInfo?.id === group.id
-          ? draggingInfo.xCm + draggingInfo.dragOffsetScreenX / plateMeta.scale
-          : group.xCm;
+          ? clampedXCm + draggingInfo.dragOffsetScreenX / plateMeta.scale
+          : clampedXCm;
 
       const currentYCm =
         draggingInfo?.id === group.id
-          ? draggingInfo.yCm + draggingInfo.dragOffsetScreenY / plateMeta.scale
-          : group.yCm;
+          ? clampedYCm + draggingInfo.dragOffsetScreenY / plateMeta.scale
+          : clampedYCm;
 
       for (let i = 0; i < group.count; i++) {
         const offCmX = group.direction === "horizontal" ? i * stepCm : 0;
@@ -272,16 +291,15 @@ export function useCanvasDraw(
     }
 
     // Draw sockets
-
     let socketImg: HTMLImageElement | null =
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (window as any).__socket_img || null;
     if (!socketImg) {
       socketImg = new Image();
       socketImg.crossOrigin = "anonymous";
       socketImg.src =
         "https://cdn.shopify.com/s/files/1/0514/2511/6352/files/steckdose_1.png?v=1738943041";
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        //eslint-disable-next-line @typescript-eslint/no-explicit-any
       (window as any).__socket_img = socketImg;
     }
 
@@ -292,33 +310,48 @@ export function useCanvasDraw(
       const step = SOCKET_DIAM_CM + SOCKET_GAP_CM;
       const radius = (SOCKET_DIAM_CM / 2) * plateMeta.scale;
 
+      // Clamp sockets within plate
+      const groupWidthCm =
+        group.direction === "horizontal"
+          ? step * (group.count - 1) + SOCKET_DIAM_CM
+          : SOCKET_DIAM_CM;
+      const groupHeightCm =
+        group.direction === "vertical"
+          ? step * (group.count - 1) + SOCKET_DIAM_CM
+          : SOCKET_DIAM_CM;
+
+      const clampedXCm = Math.min(
+        Math.max(0, group.xCm),
+        plateMeta.plate.widthCm - groupWidthCm
+      );
+      const clampedYCm = Math.min(
+        Math.max(0, group.yCm),
+        plateMeta.plate.heightCm - groupHeightCm
+      );
+
       const currentXCm =
         draggingInfo?.id === group.id
-          ? draggingInfo.xCm + draggingInfo.dragOffsetScreenX / plateMeta.scale
-          : group.xCm;
+          ? clampedXCm + draggingInfo.dragOffsetScreenX / plateMeta.scale
+          : clampedXCm;
 
       const currentYCm =
         draggingInfo?.id === group.id
-          ? draggingInfo.yCm + draggingInfo.dragOffsetScreenY / plateMeta.scale
-          : group.yCm;
+          ? clampedYCm + draggingInfo.dragOffsetScreenY / plateMeta.scale
+          : clampedYCm;
 
       const socketCenters: {x: number; y: number}[] = [];
-
-      const EDGE_MARGIN_CM = 3; // 3 cm from plate edges
-      const GROUP_MARGIN_CM = 4; // 4 cm between socket groups
 
       for (let i = 0; i < group.count; i++) {
         const offCmX = group.direction === "horizontal" ? i * step : 0;
         const offCmY = group.direction === "vertical" ? i * step : 0;
 
-        // Enforce edge margin
-        const xCmWithMargin = Math.max(EDGE_MARGIN_CM, currentXCm + offCmX);
-        const yCmWithMargin = Math.max(EDGE_MARGIN_CM, currentYCm + offCmY);
-
-        // Apply group spacing
-        const xTopLeft = plateMeta.dx + xCmWithMargin * plateMeta.scale;
+        const xTopLeft = plateMeta.dx + (currentXCm + offCmX) * plateMeta.scale;
         const yTopLeft =
-          plateMeta.dy + plateMeta.plateH - yCmWithMargin * plateMeta.scale;
+          plateMeta.dy +
+          plateMeta.plateH -
+          (group.direction === "vertical"
+            ? currentYCm * plateMeta.scale - offCmY * plateMeta.scale
+            : (currentYCm + offCmY) * plateMeta.scale);
 
         socketCenters.push({x: xTopLeft + radius, y: yTopLeft - radius});
 
@@ -346,6 +379,7 @@ export function useCanvasDraw(
         }
       }
 
+      // Draw anchor for dragged group
       if (socketCenters.length > 0 && draggingInfo?.id === group.id) {
         let anchorX: number;
         let anchorY: number;
@@ -371,10 +405,10 @@ export function useCanvasDraw(
         ctx.fillStyle = "rgba(255,0,0,0.9)";
         ctx.fill();
 
-        const rightX = plateMeta.dx + plateMeta.plateW;
-        const bottomY = plateMeta.dy + plateMeta.plateH;
         const leftX = plateMeta.dx;
+        const bottomY = plateMeta.dy + plateMeta.plateH;
 
+        // Horizontal line to left
         ctx.beginPath();
         ctx.moveTo(anchorX, anchorY);
         ctx.lineTo(leftX, anchorY);
@@ -383,8 +417,6 @@ export function useCanvasDraw(
         ctx.stroke();
 
         const arrowSize = 12;
-        let angle = 90;
-        // Arrow to left edge
         ctx.beginPath();
         ctx.moveTo(leftX, anchorY);
         ctx.lineTo(leftX + arrowSize, anchorY - arrowSize / 2);
@@ -394,6 +426,7 @@ export function useCanvasDraw(
         ctx.fill();
         ctx.stroke();
 
+        // Vertical line to bottom
         ctx.beginPath();
         ctx.moveTo(anchorX, anchorY);
         ctx.lineTo(anchorX, bottomY);
@@ -401,7 +434,7 @@ export function useCanvasDraw(
         ctx.lineWidth = 4;
         ctx.stroke();
 
-        angle = Math.PI / 2;
+        const angle = Math.PI / 2;
         ctx.beginPath();
         ctx.moveTo(anchorX, bottomY);
         ctx.lineTo(
