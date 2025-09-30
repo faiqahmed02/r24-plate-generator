@@ -39,7 +39,7 @@ export const SocketCanvas: React.FC<Props> = ({
   const draggingRef = useRef<string | null>(null);
   const dragOffsetRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
 
-  // keep ref in sync
+  // Keep ref in sync
   useEffect(() => {
     socketGroupsRef.current = socketGroups;
   }, [socketGroups]);
@@ -75,7 +75,7 @@ export const SocketCanvas: React.FC<Props> = ({
             });
 
             (e.target as Element).setPointerCapture?.(
-              (e as unknown as PointerEvent).pointerId
+              e.pointerId
             );
             return;
           }
@@ -108,29 +108,24 @@ export const SocketCanvas: React.FC<Props> = ({
           ? stepCm * (group.count - 1) + SOCKET_DIAM_CM
           : SOCKET_DIAM_CM;
 
-      let nx = Math.min(Math.max(0, xCm), plate.widthCm - groupWidth);
-      let ny = Math.min(Math.max(0, yCm), plate.heightCm - groupHeight);
+      // ✅ Clamp to plate with edge padding
+      const nx = Math.min(
+        Math.max(MIN_EDGE_SPACE_CM, xCm),
+        plate.widthCm - groupWidth - MIN_EDGE_SPACE_CM
+      );
+      const ny = Math.min(
+        Math.max(MIN_EDGE_SPACE_CM, yCm),
+        plate.heightCm - groupHeight - MIN_EDGE_SPACE_CM
+      );
 
-      if (group.direction === "horizontal") {
-        ny = Math.min(
-          Math.max(MIN_EDGE_SPACE_CM, ny),
-          plate.heightCm - groupHeight
-        );
-      } else {
-        nx = Math.min(
-          Math.max(MIN_EDGE_SPACE_CM, nx),
-          plate.widthCm - groupWidth
-        );
-      }
-
-      // update group position
+      // Update group position
       setSocketGroups((prev) =>
         prev.map((g) =>
           g.id === draggingGroupId ? { ...g, xCm: nx, yCm: ny } : g
         )
       );
 
-      // update draggingInfo for red anchor
+      // Update draggingInfo for red anchor
       setDraggingInfo({
         id: group.id,
         xCm: nx,
@@ -146,7 +141,7 @@ export const SocketCanvas: React.FC<Props> = ({
 
       try {
         (e.target as Element).releasePointerCapture?.(
-          (e as unknown as PointerEvent).pointerId
+          e.pointerId
         );
       } catch {
         /* ignore */
@@ -164,7 +159,14 @@ export const SocketCanvas: React.FC<Props> = ({
       window.removeEventListener("pointermove", pointerMove);
       window.removeEventListener("pointerup", pointerUp);
     };
-  }, [canvasRef, getSocketScreenCoords, screenToCm, plates, setSocketGroups, setDraggingInfo]);
+  }, [
+    canvasRef,
+    getSocketScreenCoords,
+    screenToCm,
+    plates,
+    setSocketGroups,
+    setDraggingInfo,
+  ]);
 
   return null;
 };

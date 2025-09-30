@@ -27,6 +27,7 @@ export function useCanvasDraw(
   draggingInfo: DraggingInfo | null = null
 ) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const EDGE_PADDING_CM = 0.3; // padding from plate edges
 
   const computeLayout = (cw: number, ch: number, scale: number) => {
     const metas: {
@@ -73,7 +74,6 @@ export function useCanvasDraw(
       const stepCm = SOCKET_DIAM_CM + SOCKET_GAP_CM;
       const radiusPx = (SOCKET_DIAM_CM / 2) * plateMeta.scale;
 
-      // Calculate clamped positions to keep sockets inside plate
       const groupWidthCm =
         group.direction === "horizontal"
           ? stepCm * (group.count - 1) + SOCKET_DIAM_CM
@@ -83,14 +83,15 @@ export function useCanvasDraw(
           ? stepCm * (group.count - 1) + SOCKET_DIAM_CM
           : SOCKET_DIAM_CM;
 
-      const clampedXCm = Math.min(
-        Math.max(0, group.xCm),
-        plateMeta.plate.widthCm - groupWidthCm
-      );
-      const clampedYCm = Math.min(
-        Math.max(0, group.yCm),
-        plateMeta.plate.heightCm - groupHeightCm
-      );
+          const clampedXCm = Math.min(
+            Math.max(EDGE_PADDING_CM, group.xCm),
+            plateMeta.plate.widthCm - groupWidthCm - EDGE_PADDING_CM
+          );
+          const clampedYCm = Math.min(
+            Math.max(EDGE_PADDING_CM, group.yCm),
+            plateMeta.plate.heightCm - groupHeightCm - EDGE_PADDING_CM
+          );
+          
 
       const currentXCm =
         draggingInfo?.id === group.id
@@ -108,10 +109,13 @@ export function useCanvasDraw(
 
         const xBottomLeftPx =
           plateMeta.dx + (currentXCm + offCmX) * plateMeta.scale;
+
+        // vertical downward
         const yBottomLeftPx =
           plateMeta.dy +
           plateMeta.plateH -
-          (currentYCm + offCmY) * plateMeta.scale;
+          currentYCm * plateMeta.scale +
+          offCmY * plateMeta.scale;
 
         const xCenterPx = xBottomLeftPx + radiusPx;
         const yCenterPx = yBottomLeftPx - radiusPx;
@@ -210,7 +214,7 @@ export function useCanvasDraw(
       ctx.fillRect(dx, dy, plateW, plateH);
       ctx.strokeRect(dx, dy, plateW, plateH);
 
-      // Draw image segments
+      // Draw image segments (same as before) ...
       let remainingWidthCm = plate.widthCm;
       let segmentStartX = xCursorCm;
 
@@ -292,14 +296,12 @@ export function useCanvasDraw(
 
     // Draw sockets
     let socketImg: HTMLImageElement | null =
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (window as any).__socket_img || null;
     if (!socketImg) {
       socketImg = new Image();
       socketImg.crossOrigin = "anonymous";
       socketImg.src =
         "https://cdn.shopify.com/s/files/1/0514/2511/6352/files/steckdose_1.png?v=1738943041";
-        //eslint-disable-next-line @typescript-eslint/no-explicit-any
       (window as any).__socket_img = socketImg;
     }
 
@@ -310,7 +312,6 @@ export function useCanvasDraw(
       const step = SOCKET_DIAM_CM + SOCKET_GAP_CM;
       const radius = (SOCKET_DIAM_CM / 2) * plateMeta.scale;
 
-      // Clamp sockets within plate
       const groupWidthCm =
         group.direction === "horizontal"
           ? step * (group.count - 1) + SOCKET_DIAM_CM
@@ -321,12 +322,12 @@ export function useCanvasDraw(
           : SOCKET_DIAM_CM;
 
       const clampedXCm = Math.min(
-        Math.max(0, group.xCm),
-        plateMeta.plate.widthCm - groupWidthCm
+        Math.max(EDGE_PADDING_CM, group.xCm),
+        plateMeta.plate.widthCm - groupWidthCm - EDGE_PADDING_CM
       );
       const clampedYCm = Math.min(
-        Math.max(0, group.yCm),
-        plateMeta.plate.heightCm - groupHeightCm
+        Math.max(EDGE_PADDING_CM, group.yCm),
+        plateMeta.plate.heightCm - groupHeightCm - EDGE_PADDING_CM
       );
 
       const currentXCm =
@@ -344,16 +345,16 @@ export function useCanvasDraw(
       for (let i = 0; i < group.count; i++) {
         const offCmX = group.direction === "horizontal" ? i * step : 0;
         const offCmY = group.direction === "vertical" ? i * step : 0;
-      
+
         const xTopLeft = plateMeta.dx + (currentXCm + offCmX) * plateMeta.scale;
         const yTopLeft =
           plateMeta.dy +
           plateMeta.plateH -
-          (currentYCm * plateMeta.scale) - // base Y
-          (group.direction === "vertical" ? -offCmY * plateMeta.scale : offCmY * plateMeta.scale);
-      
-        socketCenters.push({ x: xTopLeft + radius, y: yTopLeft - radius });
-      
+          currentYCm * plateMeta.scale +
+          (group.direction === "vertical" ? offCmY * plateMeta.scale : 0);
+
+        socketCenters.push({x: xTopLeft + radius, y: yTopLeft - radius});
+
         if (socketImg && socketImg.complete && socketImg.naturalWidth) {
           const imgAspect = socketImg.naturalWidth / socketImg.naturalHeight;
           const finalDrawH = (SOCKET_DIAM_CM * plateMeta.scale) / imgAspect;
@@ -377,10 +378,8 @@ export function useCanvasDraw(
           ctx.stroke();
         }
       }
-      
-      
 
-      // Draw anchor for dragged group
+      // Draw anchor for dragged group (unchanged)
       if (socketCenters.length > 0 && draggingInfo?.id === group.id) {
         let anchorX: number;
         let anchorY: number;
@@ -409,7 +408,6 @@ export function useCanvasDraw(
         const leftX = plateMeta.dx;
         const bottomY = plateMeta.dy + plateMeta.plateH;
 
-        // Horizontal line to left
         ctx.beginPath();
         ctx.moveTo(anchorX, anchorY);
         ctx.lineTo(leftX, anchorY);
@@ -427,7 +425,6 @@ export function useCanvasDraw(
         ctx.fill();
         ctx.stroke();
 
-        // Vertical line to bottom
         ctx.beginPath();
         ctx.moveTo(anchorX, anchorY);
         ctx.lineTo(anchorX, bottomY);

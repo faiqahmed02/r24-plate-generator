@@ -5,7 +5,7 @@ import {FiEdit2} from "react-icons/fi";
 import {AiFillDelete} from "react-icons/ai";
 import {uid} from "../shared/NumberUtils";
 
-const MIN_EDGE_SPACE_CM = 3.5;
+const MIN_EDGE_SPACE_CM = 0.3;
 const MIN_GROUP_SPACE_CM = 4;
 
 export default function SocketControlPanel({
