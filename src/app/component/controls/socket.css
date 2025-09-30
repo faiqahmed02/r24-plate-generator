@@ -198,4 +198,11 @@
 .menu-content button:hover{
     background: #f0f0f0;
 }
+
+.plate-box.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  border: 1px dashed #ccc;
+}
+
   

@@ -62,7 +62,9 @@ export default function SocketControlPanel({
       // Edge validation
       if (group.direction === "horizontal") {
         if (x < MIN_EDGE_SPACE_CM) {
-          setError(`Abstand von links muss mindestens ${MIN_EDGE_SPACE_CM} cm betragen`);
+          setError(
+            `Abstand von links muss mindestens ${MIN_EDGE_SPACE_CM} cm betragen`
+          );
           return false;
         }
         if (x + totalLength + MIN_EDGE_SPACE_CM > plate.widthCm) {
@@ -71,7 +73,9 @@ export default function SocketControlPanel({
         }
       } else {
         if (y < MIN_EDGE_SPACE_CM) {
-          setError(`Abstand von unten muss mindestens ${MIN_EDGE_SPACE_CM} cm betragen`);
+          setError(
+            `Abstand von unten muss mindestens ${MIN_EDGE_SPACE_CM} cm betragen`
+          );
           return false;
         }
         if (y + totalLength + MIN_EDGE_SPACE_CM > plate.heightCm) {
@@ -134,24 +138,27 @@ export default function SocketControlPanel({
     setConfirmedGroups((prev) => [...prev, id]);
   const editGroup = (id: string) =>
     setConfirmedGroups((prev) => prev.filter((gId) => gId !== id));
-    const deleteGroup = (id: string) => {
-        setSocketGroups((prev) => {
-          // If there’s only 1 group left and sockets are enabled → don’t delete
-          if (prev.length === 1 && socketsEnabled) {
-            setError("Mindestens eine Steckdose muss vorhanden sein");
-            return prev;
-          }
-      
-          const remaining = prev.filter((g) => g.id !== id);
-          return remaining;
-        });
-      
-        setConfirmedGroups((prev) => prev.filter((gId) => gId !== id));
-      };
+  const deleteGroup = (id: string) => {
+    setSocketGroups((prev) => {
+      // If there’s only 1 group left and sockets are enabled → don’t delete
+      if (prev.length === 1 && socketsEnabled) {
+        setError("Mindestens eine Steckdose muss vorhanden sein");
+        return prev;
+      }
+
+      const remaining = prev.filter((g) => g.id !== id);
+      return remaining;
+    });
+
+    setConfirmedGroups((prev) => prev.filter((gId) => gId !== id));
+  };
 
   const addGroup = () => {
     const validPlate = plates.find((p) => p.widthCm >= 30 && p.heightCm >= 30);
-    if (!validPlate) return;
+    if (!validPlate) {
+      setError("Keine geeignete Rückwand (≥ 30×30 cm) verfügbar");
+      return;
+    }
 
     setSocketGroups((prev) => [
       ...prev,
@@ -166,8 +173,9 @@ export default function SocketControlPanel({
     ]);
   };
 
-  const allConfirmed = socketGroups.length > 0 && socketGroups.every((sg) => confirmedGroups.includes(sg.id));
-
+  const allConfirmed =
+    socketGroups.length > 0 &&
+    socketGroups.every((sg) => confirmedGroups.includes(sg.id));
 
   return (
     <div className="socket-panel">
@@ -187,10 +195,11 @@ export default function SocketControlPanel({
               const enabled = e.target.checked;
               setSocketsEnabled(enabled);
 
-              if (enabled && plates.length > 0 && socketGroups.length === 0) {
+              if (enabled && socketGroups.length === 0) {
                 const validPlate = plates.find(
                   (p) => p.widthCm >= 30 && p.heightCm >= 30
                 );
+
                 if (validPlate) {
                   setSocketGroups([
                     {
@@ -202,6 +211,8 @@ export default function SocketControlPanel({
                       direction: "horizontal",
                     },
                   ]);
+                } else {
+                  setError("Keine geeignete Rückwand (≥ 30×30 cm) verfügbar");
                 }
               }
             }}
@@ -222,17 +233,17 @@ export default function SocketControlPanel({
             <div
               key={sg.id}
               className="socket-card"
-              style={!isConfirmed ? { height: "574px" } : {}}
+              style={!isConfirmed ? { height: "604px" } : {}}
             >
               <div className="card-header">
                 {isConfirmed && (
-                <div
+                  <div
                     className="three-dot-menu"
                     ref={(el) => {
-                        menuRefs.current[sg.id] = el;
+                      menuRefs.current[sg.id] = el;
                     }}
                     style={{ position: "relative" }}
-                >
+                  >
                     <button
                       onClick={() =>
                         setOpenMenus((prev) => ({
@@ -275,21 +286,52 @@ export default function SocketControlPanel({
                 <div>
                   {/* Plate selection */}
                   <div className="field">
-                    <p className="card-title">Wähle die Rückwand für die Steckdose</p>
-                    <div className="plate-options">
-                      {plates.map((p) => (
-                        <div key={p.id}>
-                          <div
-                            className={`plate-box ${
-                              sg.plateId === p.id ? "selected" : ""
-                            }`}
-                            onClick={() => updateGroup(idx, { ...sg, plateId: p.id })}
-                          />
-                          <p>
-                            {p.widthCm} × {p.heightCm} cm
-                          </p>
-                        </div>
-                      ))}
+                    <div className="field">
+                      <p className="card-title">
+                        Wähle die Rückwand für die Steckdose
+                      </p>
+                      <div className="plate-options">
+                        {plates.map((p) => {
+                          const isEligible =
+                            p.widthCm >= 30 && p.heightCm >= 30;
+
+                          // ✅ Auto-select the first eligible plate if none chosen
+                          const shouldSelect =
+                            sg.plateId === p.id ||
+                            (!sg.plateId &&
+                              isEligible &&
+                              p.id ===
+                                plates.find(
+                                  (pl) =>
+                                    pl.widthCm >= 30 && pl.heightCm >= 30
+                                )?.id);
+
+                          return (
+                            <div key={p.id}>
+                              <div
+                                className={`plate-box ${
+                                  shouldSelect ? "selected" : ""
+                                } ${!isEligible ? "disabled" : ""}`}
+                                onClick={() =>
+                                  isEligible
+                                    ? updateGroup(idx, { ...sg, plateId: p.id })
+                                    : setError(
+                                        "Diese Rückwand ist kleiner als 30×30 cm und nicht geeignet für Steckdosen"
+                                      )
+                                }
+                              />
+                              <p>
+                                {p.widthCm} × {p.heightCm} cm{" "}
+                                {!isEligible && (
+                                  <span style={{ color: "red" }}>
+                                    (nicht geeignet)
+                                  </span>
+                                )}
+                              </p>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
                   </div>
 
@@ -301,8 +343,12 @@ export default function SocketControlPanel({
                         {[1, 2, 3, 4, 5].map((num) => (
                           <button
                             key={num}
-                            className={`btn-option ${sg.count === num ? "active" : ""}`}
-                            onClick={() => updateGroup(idx, { ...sg, count: num })}
+                            className={`btn-option ${
+                              sg.count === num ? "active" : ""
+                            }`}
+                            onClick={() =>
+                              updateGroup(idx, { ...sg, count: num })
+                            }
                             disabled={num > maxSockets}
                           >
                             {num}
@@ -317,8 +363,12 @@ export default function SocketControlPanel({
                         {(["horizontal", "vertical"] as const).map((dir) => (
                           <button
                             key={dir}
-                            className={`btn-option ${sg.direction === dir ? "active" : ""}`}
-                            onClick={() => updateGroup(idx, { ...sg, direction: dir })}
+                            className={`btn-option ${
+                              sg.direction === dir ? "active" : ""
+                            }`}
+                            onClick={() =>
+                              updateGroup(idx, { ...sg, direction: dir })
+                            }
                           >
                             {dir === "horizontal" ? "Horizontal" : "Vertical"}
                           </button>
@@ -339,7 +389,10 @@ export default function SocketControlPanel({
                           min={MIN_EDGE_SPACE_CM}
                           max={plate.widthCm - MIN_EDGE_SPACE_CM}
                           onChange={(e) =>
-                            updateGroup(idx, { ...sg, xCm: parseFloat(e.target.value) })
+                            updateGroup(idx, {
+                              ...sg,
+                              xCm: parseFloat(e.target.value),
+                            })
                           }
                         />
                         <span className="small">cm</span>
@@ -358,7 +411,10 @@ export default function SocketControlPanel({
                           min={MIN_EDGE_SPACE_CM}
                           max={plate.heightCm - MIN_EDGE_SPACE_CM}
                           onChange={(e) =>
-                            updateGroup(idx, { ...sg, yCm: parseFloat(e.target.value) })
+                            updateGroup(idx, {
+                              ...sg,
+                              yCm: parseFloat(e.target.value),
+                            })
                           }
                         />
                         <span className="small">cm</span>
@@ -366,15 +422,23 @@ export default function SocketControlPanel({
                     </div>
                   </div>
 
-                  <div className="field" style={{ backgroundColor: "transparent" }}>
-                    <button className="btn" onClick={() => confirmGroup(sg.id)} style={{ float: "right" }}>
+                  <div
+                    className="field"
+                    style={{ backgroundColor: "transparent" }}
+                  >
+                    <button
+                      className="btn"
+                      onClick={() => confirmGroup(sg.id)}
+                      style={{ float: "right" }}
+                    >
                       Confirm
                     </button>
                   </div>
                 </div>
               ) : (
                 <div className="confirmed-details">
-                  Plate: {plate.widthCm} × {plate.heightCm} cm | Count: {sg.count}
+                  Plate: {plate.widthCm} × {plate.heightCm} cm | Count:{" "}
+                  {sg.count}
                 </div>
               )}
             </div>
