@@ -272,15 +272,16 @@ export function useCanvasDraw(
     }
 
     // Draw sockets
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     let socketImg: HTMLImageElement | null =
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (window as any).__socket_img || null;
     if (!socketImg) {
       socketImg = new Image();
       socketImg.crossOrigin = "anonymous";
       socketImg.src =
         "https://cdn.shopify.com/s/files/1/0514/2511/6352/files/steckdose_1.png?v=1738943041";
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (window as any).__socket_img = socketImg;
     }
 
@@ -303,32 +304,36 @@ export function useCanvasDraw(
 
       const socketCenters: {x: number; y: number}[] = [];
 
-      const EDGE_MARGIN_CM = 3;   // 3 cm from plate edges
-      const GROUP_MARGIN_CM = 4;  // 4 cm between socket groups
-      
+      const EDGE_MARGIN_CM = 3; // 3 cm from plate edges
+      const GROUP_MARGIN_CM = 4; // 4 cm between socket groups
+
       for (let i = 0; i < group.count; i++) {
         const offCmX = group.direction === "horizontal" ? i * step : 0;
         const offCmY = group.direction === "vertical" ? i * step : 0;
-      
+
         // Enforce edge margin
         const xCmWithMargin = Math.max(EDGE_MARGIN_CM, currentXCm + offCmX);
         const yCmWithMargin = Math.max(EDGE_MARGIN_CM, currentYCm + offCmY);
-      
+
         // Apply group spacing
         const xTopLeft = plateMeta.dx + xCmWithMargin * plateMeta.scale;
         const yTopLeft =
-          plateMeta.dy +
-          plateMeta.plateH -
-          yCmWithMargin * plateMeta.scale;
-      
-        socketCenters.push({ x: xTopLeft + radius, y: yTopLeft - radius });
-      
+          plateMeta.dy + plateMeta.plateH - yCmWithMargin * plateMeta.scale;
+
+        socketCenters.push({x: xTopLeft + radius, y: yTopLeft - radius});
+
         if (socketImg && socketImg.complete && socketImg.naturalWidth) {
           const imgAspect = socketImg.naturalWidth / socketImg.naturalHeight;
           const finalDrawH = (SOCKET_DIAM_CM * plateMeta.scale) / imgAspect;
           ctx.save();
           ctx.translate(xTopLeft, yTopLeft - 2 * radius);
-          ctx.drawImage(socketImg, 0, 0, SOCKET_DIAM_CM * plateMeta.scale, finalDrawH);
+          ctx.drawImage(
+            socketImg,
+            0,
+            0,
+            SOCKET_DIAM_CM * plateMeta.scale,
+            finalDrawH
+          );
           ctx.restore();
         } else {
           ctx.beginPath();
@@ -340,7 +345,6 @@ export function useCanvasDraw(
           ctx.stroke();
         }
       }
-      
 
       if (socketCenters.length > 0 && draggingInfo?.id === group.id) {
         let anchorX: number;
