@@ -295,7 +295,7 @@ export default function SocketControlPanel({
                           const isEligible =
                             p.widthCm >= 30 && p.heightCm >= 30;
 
-                          // ✅ Auto-select the first eligible plate if none chosen
+                          // Auto-select the first eligible plate if none chosen
                           const shouldSelect =
                             sg.plateId === p.id ||
                             (!sg.plateId &&

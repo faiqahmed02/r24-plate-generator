@@ -240,7 +240,7 @@ useEffect(() => {
     if (targetPlate && socketGroups.length === 0) {
       setSocketGroups([
         {
-          id: uid(), // ✅ stable across SSR/client
+          id: uid(),
           plateId: targetPlate.id,
           xCm: MIN_EDGE_SPACE_CM,
           yCm: MIN_EDGE_SPACE_CM,

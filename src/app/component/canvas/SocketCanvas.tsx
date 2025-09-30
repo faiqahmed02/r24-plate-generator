@@ -108,7 +108,7 @@ export const SocketCanvas: React.FC<Props> = ({
           ? stepCm * (group.count - 1) + SOCKET_DIAM_CM
           : SOCKET_DIAM_CM;
 
-      // ✅ Clamp to plate with edge padding
+      // Clamp to plate with edge padding
       const nx = Math.min(
         Math.max(MIN_EDGE_SPACE_CM, xCm),
         plate.widthCm - groupWidth - MIN_EDGE_SPACE_CM

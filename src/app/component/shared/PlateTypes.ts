@@ -11,18 +11,18 @@ export type Draft = { value: string; invalid?: boolean };
 
 export type SocketGroup = {
     id: string;
-    plateId: string; // which plate it belongs to
-    xCm: number;     // distance from left (cm)
-    yCm: number;     // distance from bottom (cm)
-    count: number;   // 1–5
+    plateId: string;
+    xCm: number;     
+    yCm: number;     
+    count: number;  
     direction: "horizontal" | "vertical";
 };
 
 export const SOCKET_DIAM_CM = 7.0;
 export const SOCKET_GAP_CM = 0.2;
 
-export const MIN_EDGE_SPACE_CM = 3; // Minimum space from edge for first socket
-export const EDGE_PADDING_CM = 0.3; // padding from plate edges
+export const MIN_EDGE_SPACE_CM = 3; 
+export const EDGE_PADDING_CM = 0.3; 
 
 export type DraggingInfo = {
     id: string;
