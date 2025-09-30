@@ -83,15 +83,14 @@ export function useCanvasDraw(
           ? stepCm * (group.count - 1) + SOCKET_DIAM_CM
           : SOCKET_DIAM_CM;
 
-          const clampedXCm = Math.min(
-            Math.max(EDGE_PADDING_CM, group.xCm),
-            plateMeta.plate.widthCm - groupWidthCm - EDGE_PADDING_CM
-          );
-          const clampedYCm = Math.min(
-            Math.max(EDGE_PADDING_CM, group.yCm),
-            plateMeta.plate.heightCm - groupHeightCm - EDGE_PADDING_CM
-          );
-          
+      const clampedXCm = Math.min(
+        Math.max(EDGE_PADDING_CM, group.xCm),
+        plateMeta.plate.widthCm - groupWidthCm - EDGE_PADDING_CM
+      );
+      const clampedYCm = Math.min(
+        Math.max(EDGE_PADDING_CM, group.yCm),
+        plateMeta.plate.heightCm - groupHeightCm - EDGE_PADDING_CM
+      );
 
       const currentXCm =
         draggingInfo?.id === group.id
@@ -383,7 +382,7 @@ export function useCanvasDraw(
       if (socketCenters.length > 0 && draggingInfo?.id === group.id) {
         let anchorX: number;
         let anchorY: number;
-
+      
         if (group.direction === "vertical" && group.count > 1) {
           const lastSocket = socketCenters[socketCenters.length - 1];
           anchorX = lastSocket.x;
@@ -398,24 +397,26 @@ export function useCanvasDraw(
           anchorX = sumX / socketCenters.length;
           anchorY = sumY / socketCenters.length;
         }
-
+      
         const anchorRadius = 6;
         ctx.beginPath();
         ctx.arc(anchorX, anchorY, anchorRadius, 0, Math.PI * 2);
         ctx.fillStyle = "rgba(255,0,0,0.9)";
         ctx.fill();
-
+      
         const leftX = plateMeta.dx;
         const bottomY = plateMeta.dy + plateMeta.plateH;
-
+        const arrowSize = 12;
+      
+        // --- Horizontal line (X-axis) ---
         ctx.beginPath();
         ctx.moveTo(anchorX, anchorY);
         ctx.lineTo(leftX, anchorY);
         ctx.strokeStyle = "white";
         ctx.lineWidth = 4;
         ctx.stroke();
-
-        const arrowSize = 12;
+      
+        // Arrow at left
         ctx.beginPath();
         ctx.moveTo(leftX, anchorY);
         ctx.lineTo(leftX + arrowSize, anchorY - arrowSize / 2);
@@ -424,14 +425,16 @@ export function useCanvasDraw(
         ctx.fillStyle = "white";
         ctx.fill();
         ctx.stroke();
-
+      
+        // --- Vertical line (Y-axis) ---
         ctx.beginPath();
         ctx.moveTo(anchorX, anchorY);
         ctx.lineTo(anchorX, bottomY);
         ctx.strokeStyle = "white";
         ctx.lineWidth = 4;
         ctx.stroke();
-
+      
+        // Arrow at bottom
         const angle = Math.PI / 2;
         ctx.beginPath();
         ctx.moveTo(anchorX, bottomY);
@@ -446,7 +449,22 @@ export function useCanvasDraw(
         ctx.lineTo(anchorX, bottomY);
         ctx.fillStyle = "white";
         ctx.fill();
+      
+        // --- Draw CM values ---
+        ctx.fillStyle = "white";
+        ctx.font = `${34}px bold Arial`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "bottom";
+      
+        // Horizontal value (X in cm) above anchor
+        ctx.fillText(`${draggingInfo.xCm.toFixed(1)} cm`, anchorX, anchorY - 10);
+      
+        // Vertical value (Y in cm) to the right of vertical line
+        ctx.textAlign = "left";
+        ctx.textBaseline = "middle";
+        ctx.fillText(`${draggingInfo.yCm.toFixed(1)} cm`, anchorX + 8, (anchorY + bottomY) / 2);
       }
+      
     }
   }, [
     image,
