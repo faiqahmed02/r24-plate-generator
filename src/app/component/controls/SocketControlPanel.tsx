@@ -1,12 +1,10 @@
 import React, {useEffect, useRef, useState, useCallback, useId} from "react";
-import {SocketGroup, Plate} from "../shared/PlateTypes";
+import {SocketGroup, Plate, SOCKET_GAP_CM, SOCKET_DIAM_CM} from "../shared/PlateTypes";
 import "./socket.css";
 import {FiEdit2} from "react-icons/fi";
 import {AiFillDelete} from "react-icons/ai";
 import {uid} from "../shared/NumberUtils";
 
-const SOCKET_DIAM_CM = 7;
-const SOCKET_GAP_CM = 0.2;
 const MIN_EDGE_SPACE_CM = 3.5;
 const MIN_GROUP_SPACE_CM = 4;
 

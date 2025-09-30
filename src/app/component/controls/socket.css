@@ -180,6 +180,9 @@
     border: 1px solid #ccc;
     width: 100%;
     border: none;
+    text-align: center;
+    font-size: large;
+    font-weight: 700;
   }
 .menu-content{
     position: absolute;

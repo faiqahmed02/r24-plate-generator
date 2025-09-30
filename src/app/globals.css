@@ -130,6 +130,9 @@ select {
 .input input {
   width: 11ch;
   max-width: 100%;
+  text-align: center;
+  font-size: large;
+  font-weight: 700;
 }
 .input.invalid {
   border-color: var(--danger);

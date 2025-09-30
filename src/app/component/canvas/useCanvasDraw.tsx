@@ -379,10 +379,10 @@ export function useCanvasDraw(
         ctx.moveTo(anchorX, anchorY);
         ctx.lineTo(leftX, anchorY);
         ctx.strokeStyle = "white";
-        ctx.lineWidth = 2;
+        ctx.lineWidth = 4;
         ctx.stroke();
 
-        const arrowSize = 8;
+        const arrowSize = 12;
         let angle = 90;
         // Arrow to left edge
         ctx.beginPath();
@@ -398,7 +398,7 @@ export function useCanvasDraw(
         ctx.moveTo(anchorX, anchorY);
         ctx.lineTo(anchorX, bottomY);
         ctx.strokeStyle = "white";
-        ctx.lineWidth = 2;
+        ctx.lineWidth = 4;
         ctx.stroke();
 
         angle = Math.PI / 2;
