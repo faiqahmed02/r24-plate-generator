@@ -23,6 +23,8 @@ type Props = {
   baseImageHeightCm?: number;
   socketGroups?: SocketGroup[];
   setSocketGroups?: React.Dispatch<React.SetStateAction<SocketGroup[]>>;
+  currentPlate: Plate | null;
+  socketEnabled?: boolean;
 };
 
 export default function CanvasPreview({
@@ -37,6 +39,8 @@ export default function CanvasPreview({
   baseImageHeightCm = 128,
   socketGroups = [],
   setSocketGroups,
+  currentPlate,
+  socketEnabled,
 }: Props) {
   const [draggingInfo, setDraggingInfo] = useState<DraggingInfo | null>(null);
   const [mounted, setMounted] = useState(false); // Track client mount

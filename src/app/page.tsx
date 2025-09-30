@@ -75,7 +75,7 @@ export default function Page() {
     []
   );
 
-  
+  const [currentPlate, setCurrentPlate] = useState<Plate | null>(null);
 
   const [socketsEnabled, setSocketsEnabled] = useState(false);
 
@@ -268,6 +268,8 @@ useEffect(() => {
         imgUrl={imgUrl}
         socketGroups={socketsEnabled ? socketGroups : []}
         setSocketGroups={setSocketGroups}
+        currentPlate={currentPlate}
+        socketEnabled={socketsEnabled}
       />
       </div>
 
@@ -290,6 +292,8 @@ useEffect(() => {
         setSocketGroups={setSocketGroups}
         socketsEnabled={socketsEnabled}
         setSocketsEnabled={setSocketsEnabled}
+        setSelectedPlate={setCurrentPlate}
+        currentPlate={currentPlate}
       />
     </main>
   );

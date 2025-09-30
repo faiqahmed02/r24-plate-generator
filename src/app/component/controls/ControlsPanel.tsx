@@ -24,6 +24,8 @@ type Props = {
   setSocketGroups: React.Dispatch<React.SetStateAction<SocketGroup[]>>;
   socketsEnabled: boolean;
   setSocketsEnabled: (on: boolean) => void;
+  setSelectedPlate: (plate: Plate | null) => void;
+  currentPlate: Plate | null;
 };
 
 export default function ControlsPanel({
@@ -45,6 +47,9 @@ export default function ControlsPanel({
   setSocketGroups,
   socketsEnabled,
   setSocketsEnabled,
+  setSelectedPlate,
+  currentPlate,
+  
 }: Props) {
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [activeStep, setActiveStep] = useState<number>(0);
@@ -205,9 +210,13 @@ export default function ControlsPanel({
                     plates={plates}
                     socketsEnabled={socketsEnabled}
                     setSocketsEnabled={setSocketsEnabled}
+                    selectedPlateId={setSelectedPlate} // ✅ pass the setter function
+                    currentPlate={currentPlate}
                   />
+                  
                 )}
               </div>
+              
 
        
             </div>

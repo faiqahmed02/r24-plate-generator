@@ -13,12 +13,17 @@ export default function SocketControlPanel({
   plates,
   setSocketsEnabled,
   socketsEnabled,
+  selectedPlateId,
+  currentPlate,
+  
 }: {
   socketGroups: SocketGroup[];
   setSocketGroups: React.Dispatch<React.SetStateAction<SocketGroup[]>>;
   plates: Plate[];
   setSocketsEnabled: (on: boolean) => void;
   socketsEnabled: boolean;
+  selectedPlateId?: (plate: Plate | null) => void; // optional
+  currentPlate?: Plate | null; // optional
 }) {
   const [error, setError] = useState("");
   const [confirmedGroups, setConfirmedGroups] = useState<string[]>([]);
@@ -108,30 +113,60 @@ export default function SocketControlPanel({
     },
     [socketGroups]
   );
-
   const updateGroup = useCallback(
     (idx: number, newGroup: SocketGroup) => {
       const plate = plates.find((p) => p.id === newGroup.plateId);
       if (!plate) return;
-
+  
+      // Save the currently active plate
+      selectedPlateId?.(plate);
+  
       const x = isNaN(newGroup.xCm) ? MIN_EDGE_SPACE_CM : newGroup.xCm;
       const y = isNaN(newGroup.yCm) ? MIN_EDGE_SPACE_CM : newGroup.yCm;
-
-      const updatedGroup = {...newGroup, xCm: x, yCm: y};
-
-      if (!validatePosition(plate, x, y, updatedGroup)) {
-        return;
-      }
-
+  
+      const updatedGroup = { ...newGroup, xCm: x, yCm: y };
+  
+      if (!validatePosition(plate, x, y, updatedGroup)) return;
+  
       setSocketGroups((prev) => {
         const updated = [...prev];
         updated[idx] = updatedGroup;
         return updated;
       });
     },
-    [plates, setSocketGroups, validatePosition]
+    [plates, setSocketGroups, validatePosition, selectedPlateId]
   );
-
+  
+  const addGroup = () => {
+    // Pick the currently selected plate first
+    let validPlate = currentPlate;
+    if (!validPlate || validPlate.widthCm < 30 || validPlate.heightCm < 30) {
+      // fallback: first eligible plate
+      validPlate = plates.find((p) => p.widthCm >= 30 && p.heightCm >= 30);
+    }
+  
+    if (!validPlate) {
+      setError("Keine geeignete Rückwand (≥ 30×30 cm) verfügbar");
+      return;
+    }
+  
+    // Save the currently active plate
+    selectedPlateId?.(validPlate);
+  
+    setSocketGroups((prev) => [
+      ...prev,
+      {
+        id: uid(),
+        plateId: validPlate!.id,
+        xCm: MIN_EDGE_SPACE_CM,
+        yCm: MIN_EDGE_SPACE_CM,
+        count: 1,
+        direction: "horizontal",
+      },
+    ]);
+  };
+  
+  
   const confirmGroup = (id: string) =>
     setConfirmedGroups((prev) => [...prev, id]);
   const editGroup = (id: string) => {
@@ -153,25 +188,25 @@ export default function SocketControlPanel({
     setConfirmedGroups((prev) => prev.filter((gId) => gId !== id));
   };
 
-  const addGroup = () => {
-    const validPlate = plates.find((p) => p.widthCm >= 30 && p.heightCm >= 30);
-    if (!validPlate) {
-      setError("Keine geeignete Rückwand (≥ 30×30 cm) verfügbar");
-      return;
-    }
+  // const addGroup = () => {
+  //   const validPlate = plates.find((p) => p.widthCm >= 30 && p.heightCm >= 30);
+  //   if (!validPlate) {
+  //     setError("Keine geeignete Rückwand (≥ 30×30 cm) verfügbar");
+  //     return;
+  //   }
 
-    setSocketGroups((prev) => [
-      ...prev,
-      {
-        id: uid(),
-        plateId: validPlate.id,
-        xCm: MIN_EDGE_SPACE_CM,
-        yCm: MIN_EDGE_SPACE_CM,
-        count: 1,
-        direction: "horizontal",
-      },
-    ]);
-  };
+  //   setSocketGroups((prev) => [
+  //     ...prev,
+  //     {
+  //       id: uid(),
+  //       plateId: validPlate.id,
+  //       xCm: MIN_EDGE_SPACE_CM,
+  //       yCm: MIN_EDGE_SPACE_CM,
+  //       count: 1,
+  //       direction: "horizontal",
+  //     },
+  //   ]);
+  // };
 
   const allConfirmed =
     socketGroups.length > 0 &&
