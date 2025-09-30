@@ -39,6 +39,8 @@ export default function CanvasPreview({
   setSocketGroups,
 }: Props) {
   const [draggingInfo, setDraggingInfo] = useState<DraggingInfo | null>(null);
+  const [mounted, setMounted] = useState(false); // Track client mount
+
   const { canvasRef, draw, getSocketScreenCoords, screenToCm } = useCanvasDraw(
     plates,
     image,
@@ -47,9 +49,13 @@ export default function CanvasPreview({
     baseImageWidthCm,
     baseImageHeightCm,
     socketGroups,
-    draggingInfo,
+    draggingInfo
   );
 
+  // Mark component as mounted on client
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Redraw canvas when props change
   useEffect(() => {
@@ -65,7 +71,6 @@ export default function CanvasPreview({
     baseImageHeightCm,
   ]);
 
-  // Export PNG function
   const exportPNG = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -78,13 +83,19 @@ export default function CanvasPreview({
   };
 
   return (
-    <section className="canvasPreview" style={{ position: "fixed", width: "68%" }}>
+    <section
+      className="canvasPreview"
+      style={{ position: "fixed", width: "68%" }}
+    >
       <div className="card" style={{ padding: "1rem" }}>
         <div className="row" style={{ justifyContent: "space-between" }}>
           <div className="row">
-            <span className="small">
-              {plates.length} plate{plates.length > 1 ? "s" : ""}
-            </span>
+            {/* Render only after client mount to prevent hydration mismatch */}
+            {mounted && (
+              <span className="small">
+                {plates.length} plate{plates.length !== 1 ? "s" : ""}
+              </span>
+            )}
           </div>
           <div className="row">
             <button className="btn" onClick={exportPNG} title="Export as PNG">
@@ -93,14 +104,15 @@ export default function CanvasPreview({
           </div>
         </div>
       </div>
+
       <div
         className="canvasWrap"
         style={{ marginTop: ".75rem", minHeight: 720, minWidth: "100%" }}
       >
         <canvas ref={canvasRef} />
-        {setSocketGroups && (
+        {setSocketGroups && mounted && (
           <SocketCanvas
-          setDraggingInfo={setDraggingInfo}
+            setDraggingInfo={setDraggingInfo}
             canvasRef={canvasRef as React.RefObject<HTMLCanvasElement>}
             plates={plates}
             socketGroups={socketGroups}
